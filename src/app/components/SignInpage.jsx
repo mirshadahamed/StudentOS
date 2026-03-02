@@ -7,7 +7,7 @@ import { Mail, Lock, LogIn } from "lucide-react";
 export default function AnimatedLogin() {
   const canvasRef = useRef(null);
 
-  // Particle animation effect
+  // Particle background
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -20,7 +20,6 @@ export default function AnimatedLogin() {
 
     const particles = [];
 
-    // Create particles
     for (let i = 0; i < 50; i++) {
       particles.push({
         x: Math.random() * canvas.width,
@@ -33,19 +32,16 @@ export default function AnimatedLogin() {
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       particles.forEach((particle) => {
-        // Update position
         particle.x += particle.speedX;
         particle.y += particle.speedY;
 
-        // Wrap around screen
         if (particle.x < 0) particle.x = canvas.width;
         if (particle.x > canvas.width) particle.x = 0;
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Draw particle
         ctx.fillStyle = "rgba(139, 92, 246, 0.5)";
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
@@ -66,6 +62,41 @@ export default function AnimatedLogin() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // 🔥 LOGIN FUNCTION
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+      } else {
+        alert("Login successful 🎉");
+        window.location.href = "/"; // Redirect after login
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Something went wrong");
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-900 overflow-hidden">
       {/* Canvas background */}
@@ -85,23 +116,24 @@ export default function AnimatedLogin() {
         >
           <div className="text-center mb-8">
             <motion.div
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
               className="inline-block p-4 bg-purple-600/30 rounded-full mb-4"
             >
               <LogIn className="w-8 h-8 text-white" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-white/60">Sign in to continue your journey</p>
+
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-white/60">
+              Sign in to continue your journey
+            </p>
           </div>
 
-          <form className="space-y-4">
+          {/* ✅ FORM CONNECTED */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
                 Email Address
@@ -110,14 +142,16 @@ export default function AnimatedLogin() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
                   type="email"
+                  name="email"
+                  required
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4
-                           text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500
-                           transition-colors"
+                             text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500"
                   placeholder="Enter your email"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
                 Password
@@ -126,39 +160,31 @@ export default function AnimatedLogin() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
                   type="password"
+                  name="password"
+                  required
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4
-                           text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500
-                           transition-colors"
+                             text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500"
                   placeholder="Enter your password"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="rounded bg-white/5 border-white/10 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="ml-2 text-sm text-white/60">Remember me</span>
-              </label>
-              <a href="#" className="text-sm text-purple-400 hover:text-purple-300">
-                Forgot password?
-              </a>
-            </div>
-
+            {/* Button */}
             <motion.button
+              type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg
-                       font-semibold mt-6"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold mt-6"
             >
               Sign In
             </motion.button>
 
             <p className="text-center text-white/60 mt-4">
               Don&apos;t have an account?{" "}
-              <a href="#" className="text-purple-400 hover:text-purple-300 font-semibold">
+              <a
+                href="/SignUp"
+                className="text-purple-400 hover:text-purple-300 font-semibold"
+              >
                 Sign up
               </a>
             </p>

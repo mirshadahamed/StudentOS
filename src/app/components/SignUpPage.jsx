@@ -83,11 +83,36 @@ export default function AnimatedSignUp() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle sign up logic here
-    console.log("Sign up attempt:", formData);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  const res = await fetch("/api/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message);
+  } else {
+    alert("Registration successful 🎉");
+    window.location.href = "/SignInpage";
+  }
+};
 
   return (
     <div className="relative min-h-screen bg-gray-900 overflow-hidden">
