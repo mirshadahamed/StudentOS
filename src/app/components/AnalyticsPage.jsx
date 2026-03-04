@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -153,10 +153,20 @@ const generateSampleData = () => {
   return data;
 };
 
-const moodData = generateSampleData();
+
 
 // Calculate stats
 const calculateStats = (data) => {
+  if (!data.length) {
+    return {
+      total: 0,
+      average: 0,
+      dominant: "neutral",
+      streak: 0,
+      consistency: 0
+    };
+  }
+
   const moodCounts = {};
   let totalIntensity = 0;
   
@@ -191,7 +201,7 @@ const calculateStats = (data) => {
   const firstDate = new Date(sorted[sorted.length - 1].date);
   const lastDate = new Date(sorted[0].date);
   const totalDays = Math.floor((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  const consistency = (data.length / totalDays) * 100;
+  const consistency = totalDays > 0 ? (data.length / totalDays) * 100 : 0;
   
   return {
     total: data.length,
@@ -285,8 +295,6 @@ const generateInsights = (data) => {
   return insights;
 };
 
-const stats = calculateStats(moodData);
-const insights = generateInsights(moodData);
 
 // Months for filter
 const months = [
@@ -295,12 +303,50 @@ const months = [
 ];
 
 export default function MoodHistoryPage() {
+
+  const [moodData, setMoodData] = useState([]);
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewType, setViewType] = useState("calendar");
   const [selectedMood, setSelectedMood] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [chartType, setChartType] = useState("line");
+
+  const stats = useMemo(() => calculateStats(moodData), [moodData]);
+const insights = useMemo(() => generateInsights(moodData), [moodData]);
+
+
+
+useEffect(() => {
+
+  const loadMoodData = async () => {
+    try {
+
+      const res = await fetch("/api/mood-history?userId=123");
+
+      const data = await res.json();
+
+      const formatted = data.map((item) => ({
+        id: item._id,
+        date: new Date(item.createdAt).toISOString().split("T")[0],
+        mood: item.mood,
+        intensity: item.intensity || 3,
+        factors: item.factors || [],
+        notes: item.text,
+        timestamp: new Date(item.createdAt).getTime()
+      }));
+
+      setMoodData(formatted);
+
+    } catch (err) {
+      console.error("Mood history load error:", err);
+    }
+  };
+
+  loadMoodData();
+
+}, []);
 
   // Filter data based on selections
   const filteredData = useMemo(() => {
@@ -317,7 +363,7 @@ export default function MoodHistoryPage() {
     });
     
     return filtered;
-  }, [selectedMood, selectedMonth, selectedYear]);
+  }, [moodData, selectedMood, selectedMonth, selectedYear]);
 
   // Calendar generation
   const getDaysInMonth = (year, month) => {
