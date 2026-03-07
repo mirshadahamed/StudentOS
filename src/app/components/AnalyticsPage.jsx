@@ -622,7 +622,7 @@ useEffect(() => {
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
                     className="p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    {[2024, 2023, 2022].map(year => (
+                    {[2026, 2025, 2024].map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
                   </select>

@@ -129,6 +129,9 @@ export default function Dashboard() {
   const [showSentiment, setShowSentiment] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // Debug state to track what's happening
+  const [debugInfo, setDebugInfo] = useState<string>("");
+  
   // Simulate sentiment analysis
   const analyzeSentiment = async (text: string) => {
     try {
@@ -174,22 +177,67 @@ export default function Dashboard() {
     );
   };
 
-  // Save mood entry
   const saveMoodEntry = async () => {
+    // Check if either a mood is selected OR there's text to analyze
     if (!selectedMood && !moodNote) return;
 
     try {
-      const moodToSave =
-        sentiment?.label === "negative" ? "sad" : selectedMood || "neutral";
+      const userId = localStorage.getItem("student_user_id");
 
-      // 1️⃣ Save mood in DB
+      if (!userId) {
+        alert("Please login first to save mood and send risk notifications.");
+        return;
+      }
+
+      // CRITICAL FIX: Always use the selected mood first
+      // This ensures the emoji click is respected
+      let moodToSave = selectedMood;
+      
+      // Log what we're starting with
+      console.log("Selected mood from state:", selectedMood);
+      setDebugInfo(`Selected mood: ${selectedMood || 'none'}`);
+      
+      // If no mood was selected but there's text, try to use sentiment
+      if (!moodToSave && moodNote && sentiment) {
+        if (sentiment.label === "negative") {
+          moodToSave = "sad";
+        } else if (sentiment.label === "positive") {
+          moodToSave = "happy";
+        } else {
+          moodToSave = "neutral";
+        }
+        console.log("Using sentiment analysis:", sentiment.label, "->", moodToSave);
+        setDebugInfo(prev => prev + ` | Sentiment: ${sentiment.label} -> ${moodToSave}`);
+      }
+      
+      // If still no mood, default to neutral
+      if (!moodToSave) {
+        moodToSave = "neutral";
+        console.log("No mood selected, defaulting to neutral");
+        setDebugInfo(prev => prev + " | Defaulting to neutral");
+      }
+
+      console.log("FINAL mood to save:", moodToSave);
+      console.log("Sending to API:", {
+        userId,
+        mood: moodToSave,
+        intensity: moodIntensity,
+        factors: selectedFactors,
+        text: moodNote
+      });
+      
+      setDebugInfo(prev => prev + ` | Saving: ${moodToSave}`);
+
+      // 1️⃣ Save mood
       const saveRes = await fetch("/api/save-mood", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          userId: "123", // replace with real logged user id
-          mood: moodToSave,
+          userId,
           text: moodNote,
+          mood: moodToSave, // This MUST be the emoji you clicked
           score: sentiment?.score || 0,
           intensity: moodIntensity,
           factors: selectedFactors,
@@ -200,51 +248,70 @@ export default function Dashboard() {
         throw new Error("Failed to save mood");
       }
 
-      // 2️⃣ Check risk (4 days rule)
-      const riskRes = await fetch("/api/check-risk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: "123" }), // replace with real logged user id
-      });
+      const savedMood = await saveRes.json();
+      console.log("Save response:", savedMood);
+      setDebugInfo(prev => prev + ` | Saved: ${moodToSave}`);
 
-      const riskData = await riskRes.json();
-
-      if (riskData.danger) {
-        await fetch("/api/notify", {
+      // 2️⃣ Check risk (4 sad moods) - only if mood is sad
+      if (moodToSave === "sad") {
+        const riskRes = await fetch("/api/check-risk", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            userId: "123", // replace with real logged user id
-            type: "risk_alert",
-            message: riskData.message 
-          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
         });
-        
-        // Show alert to user
-        alert("🚨 Your trusted person has been notified. Support is available if you need it.");
+
+        const riskData = await riskRes.json();
+
+        // 3️⃣ Notify trusted person
+        if (riskData.danger) {
+          const notifyRes = await fetch("/api/notify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId,
+              message: riskData.message || "User emotional risk detected",
+            }),
+          });
+
+          const notifyData = await notifyRes.json();
+
+          if (notifyRes.ok && notifyData.success) {
+            alert(
+              "⚠️ Your trusted person has been notified because your mood shows risk."
+            );
+          } else {
+            alert(
+              `⚠️ Risk detected, but notification failed: ${notifyData.error || "Unknown error"}`
+            );
+          }
+        }
       }
 
-      // Update local state with the new entry
+      // 4️⃣ Update local state
       const newEntry: MoodEntry = {
         id: Date.now().toString(),
-        mood: selectedMood || "neutral",
+        mood: moodToSave,
         intensity: moodIntensity,
         timestamp: new Date(),
-        note: moodNote || (sentiment ? `Sentiment: ${sentiment.label} (${(sentiment.score * 100).toFixed(0)}%)` : undefined),
+        note: moodNote,
         factors: selectedFactors.length > 0 ? selectedFactors : undefined,
-        source: "emoji"
+        source: selectedMood ? "emoji" : "text",
       };
-      
-      setRecentEntries(prev => [newEntry, ...prev].slice(0, 10));
-      
+
+      setRecentEntries((prev) => [newEntry, ...prev].slice(0, 10));
+
       // Reset form
       setSelectedMood(null);
       setMoodNote("");
       setSentiment(null);
       setSelectedFactors([]);
       setMoodIntensity(3);
-      
-      alert("✅ Mood saved successfully!");
+
+      alert(`✅ Mood saved successfully as "${moodToSave}"!`);
 
     } catch (error) {
       console.error("Error saving mood:", error);
@@ -324,6 +391,13 @@ export default function Dashboard() {
           <p className="text-lg text-gray-600">How are you feeling today?</p>
         </motion.div>
 
+        {/* Debug Info - Remove in production */}
+        {debugInfo && (
+          <div className="mb-4 p-3 bg-gray-800 text-white rounded-lg text-sm font-mono">
+            Debug: {debugInfo}
+          </div>
+        )}
+
         {/* Main Card - Quick Check-in */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -390,7 +464,11 @@ export default function Dashboard() {
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ scale: 1.05, y: -5 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedMood(mood.id)}
+                    onClick={() => {
+                      console.log("Setting selected mood to:", mood.id);
+                      setSelectedMood(mood.id);
+                      setDebugInfo(`Selected: ${mood.id}`);
+                    }}
                     className={`
                       relative group flex flex-col items-center p-6 rounded-2xl
                       transition-all duration-300

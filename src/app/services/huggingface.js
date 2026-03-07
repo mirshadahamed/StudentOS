@@ -3,42 +3,83 @@ import { HfInference } from "@huggingface/inference";
 const hf = new HfInference(process.env.HF_TOKEN);
 
 /**
- * Analyze sentiment or emotion from text using Hugging Face
+ * Analyze emotion from text using Hugging Face
  * @param {string} text
  * @returns {Promise<Object>}
  */
+
 export async function analyzeMood(text) {
+
   try {
+
     const result = await hf.textClassification({
       model: "j-hartmann/emotion-english-distilroberta-base",
       inputs: text,
     });
 
-    // result example:
-    // [{ label: "sadness", score: 0.92 }]
+    /**
+     Example response:
+     [
+       { label: "sadness", score: 0.91 },
+       { label: "joy", score: 0.02 }
+     ]
+    */
 
-    const emotion = result[0];
+    const emotion = result[0]; // highest score
 
     let mood = "neutral";
+    let risk = false;
 
-    if (emotion.label.includes("sad")) mood = "sad";
-    else if (emotion.label.includes("joy")) mood = "happy";
-    else if (emotion.label.includes("anger")) mood = "angry";
-    else if (emotion.label.includes("fear")) mood = "anxious";
+    switch (emotion.label) {
+
+      case "sadness":
+        mood = "sad";
+        if (emotion.score > 0.75) risk = true;
+        break;
+
+      case "joy":
+        mood = "happy";
+        break;
+
+      case "anger":
+        mood = "angry";
+        break;
+
+      case "fear":
+        mood = "anxious";
+        break;
+
+      case "surprise":
+        mood = "neutral";
+        break;
+
+      case "disgust":
+        mood = "angry";
+        break;
+
+      default:
+        mood = "neutral";
+
+    }
 
     return {
       mood,
-      label: emotion.label,
-      score: emotion.score,
+      emotion: emotion.label,
+      confidence: emotion.score,
+      risk,
     };
 
   } catch (error) {
+
     console.error("HuggingFace Error:", error);
 
     return {
       mood: "neutral",
-      label: "unknown",
-      score: 0,
+      emotion: "unknown",
+      confidence: 0,
+      risk: false,
     };
+
   }
+
 }

@@ -88,6 +88,10 @@ export default function AnimatedLogin() {
       if (!res.ok) {
         alert(data.message);
       } else {
+        if (data?.user?.id) {
+          localStorage.setItem("student_user_id", data.user.id);
+          localStorage.setItem("student_user_email", data.user.email || "");
+        }
         alert("Login successful 🎉");
         window.location.href = "/"; // Redirect after login
       }
