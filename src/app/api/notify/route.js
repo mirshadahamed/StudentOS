@@ -35,29 +35,52 @@ export async function POST(req) {
 
     // console.log("Sending SMS to:", phone);
 
-    console.log("SMS TOKEN:", process.env.SMSLENZ_TOKEN);
-console.log("SMS SENDER:", process.env.SMSLENZ_SENDER);
+    console.log("SMS API_KEY:", process.env.SMSLENZ_API_KEY);
+console.log("SMS SENDER_ID:", process.env.SMSLENZ_SENDER_ID);
+console.log("SMS USER_ID:", process.env.SMSLENZ_USER_ID);
 console.log("PHONE:", phone);
 console.log("MESSAGE:", smsMessage);
 
-   const sms = await fetch("https://smslenz.lk/api/v1/sms", {
+   // SMSlenz correct endpoint: https://www.smslenz.lk/api/send-sms
+    const smsUrl = process.env.SMSLENZ_URL || "https://www.smslenz.lk/api/send-sms";
+
+    // build request body with correct parameter names per SMSlenz docs
+    const smsBody = {
+      user_id: process.env.SMSLENZ_USER_ID,
+      api_key: process.env.SMSLENZ_API_KEY,
+      sender_id: process.env.SMSLENZ_SENDER_ID,
+      contact: phone,
+      message: smsMessage,
+    };
+
+    // log request details for debugging
+    console.log("SMS request", smsUrl, smsBody);
+
+    const sms = await fetch(smsUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SMSLENZ_TOKEN}`,
       },
-      body: JSON.stringify({
-  sender: process.env.SMSLENZ_SENDER,
-  numbers: phone,
-  message: smsMessage,
-})
+      body: JSON.stringify(smsBody),
     });
 
     const smsText = await sms.text();
 
-console.log("SMS Response:", smsText);
+    // if the third‑party service returns a non‑2xx code we should treat it as a failure
+    if (!sms.ok) {
+      console.error("SMS API returned non‑ok status", sms.status, smsText);
+      return Response.json(
+        {
+          success: false,
+          status: sms.status,
+          error: "SMS service error",
+          sms: smsText,
+        },
+        { status: 502 }
+      );
+    }
 
-    // console.log("SMS Response:", smsData);
+    console.log("SMS Response:", smsText);
 
     return Response.json({
       success: true,
