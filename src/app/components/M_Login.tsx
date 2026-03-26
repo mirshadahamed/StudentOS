@@ -68,6 +68,12 @@ interface SentimentAnalysis {
   confidence: number;
 }
 
+interface UserData {
+  name: string;
+  email: string;
+  profileImage?: string;
+}
+
 // Mood definitions with enhanced styling
 const moodEmojis = [
   { id: "happy", emoji: "😊", label: "Happy", color: "text-yellow-500", bg: "bg-yellow-500", lightBg: "bg-yellow-50", gradient: "from-yellow-400 to-amber-500", value: 5 },
@@ -129,8 +135,48 @@ export default function Dashboard() {
   const [showSentiment, setShowSentiment] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Debug state to track what's happening
-  const [debugInfo, setDebugInfo] = useState<string>("");
+  // User state
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  
+  const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const selectedMoodRef = useRef<string | null>(null);
+  const moodNoteRef = useRef("");
+
+  useEffect(() => {
+    selectedMoodRef.current = selectedMood;
+  }, [selectedMood]);
+
+  useEffect(() => {
+    moodNoteRef.current = moodNote;
+  }, [moodNote]);
+
+  // Fetch user data from database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userId = localStorage.getItem("student_user_id");
+        
+        if (!userId) {
+          setIsLoadingUser(false);
+          return;
+        }
+        
+        const response = await fetch(`/api/user/${userId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
   
   // Simulate sentiment analysis
   const analyzeSentiment = async (text: string) => {
@@ -178,8 +224,11 @@ export default function Dashboard() {
   };
 
   const saveMoodEntry = async () => {
+    const currentMood = selectedMoodRef.current;
+    const currentNote = moodNoteRef.current.trim();
+
     // Check if either a mood is selected OR there's text to analyze
-    if (!selectedMood && !moodNote) return;
+    if (!currentMood && !currentNote) return;
 
     try {
       const userId = localStorage.getItem("student_user_id");
@@ -191,14 +240,10 @@ export default function Dashboard() {
 
       // CRITICAL FIX: Always use the selected mood first
       // This ensures the emoji click is respected
-      let moodToSave = selectedMood;
-      
-      // Log what we're starting with
-      console.log("Selected mood from state:", selectedMood);
-      setDebugInfo(`Selected mood: ${selectedMood || 'none'}`);
+      let moodToSave = currentMood;
       
       // If no mood was selected but there's text, try to use sentiment
-      if (!moodToSave && moodNote && sentiment) {
+      if (!moodToSave && currentNote && sentiment) {
         if (sentiment.label === "negative") {
           moodToSave = "sad";
         } else if (sentiment.label === "positive") {
@@ -206,27 +251,12 @@ export default function Dashboard() {
         } else {
           moodToSave = "neutral";
         }
-        console.log("Using sentiment analysis:", sentiment.label, "->", moodToSave);
-        setDebugInfo(prev => prev + ` | Sentiment: ${sentiment.label} -> ${moodToSave}`);
       }
       
       // If still no mood, default to neutral
       if (!moodToSave) {
         moodToSave = "neutral";
-        console.log("No mood selected, defaulting to neutral");
-        setDebugInfo(prev => prev + " | Defaulting to neutral");
       }
-
-      console.log("FINAL mood to save:", moodToSave);
-      console.log("Sending to API:", {
-        userId,
-        mood: moodToSave,
-        intensity: moodIntensity,
-        factors: selectedFactors,
-        text: moodNote
-      });
-      
-      setDebugInfo(prev => prev + ` | Saving: ${moodToSave}`);
 
       // 1️⃣ Save mood
       const saveRes = await fetch("/api/save-mood", {
@@ -236,8 +266,8 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           userId,
-          text: moodNote,
-          mood: moodToSave, // This MUST be the emoji you clicked
+          text: currentNote,
+          mood: moodToSave,
           score: sentiment?.score || 0,
           intensity: moodIntensity,
           factors: selectedFactors,
@@ -249,8 +279,6 @@ export default function Dashboard() {
       }
 
       const savedMood = await saveRes.json();
-      console.log("Save response:", savedMood);
-      setDebugInfo(prev => prev + ` | Saved: ${moodToSave}`);
 
       // 2️⃣ Check risk (4 sad moods) - only if mood is sad
       if (moodToSave === "sad") {
@@ -297,9 +325,9 @@ export default function Dashboard() {
         mood: moodToSave,
         intensity: moodIntensity,
         timestamp: new Date(),
-        note: moodNote,
+        note: currentNote,
         factors: selectedFactors.length > 0 ? selectedFactors : undefined,
-        source: selectedMood ? "emoji" : "text",
+        source: currentMood ? "emoji" : "text",
       };
 
       setRecentEntries((prev) => [newEntry, ...prev].slice(0, 10));
@@ -334,6 +362,32 @@ export default function Dashboard() {
     return moodActivities[selectedMood as keyof typeof moodActivities] || [];
   };
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  // Get current date formatted
+  const getFormattedDate = () => {
+    return new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Get user's first name
+  const getUserFirstName = () => {
+    if (userData?.name) {
+      return userData.name.split(' ')[0];
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Navigation Bar */}
@@ -358,45 +412,60 @@ export default function Dashboard() {
                 <BarChart3 className="w-5 h-5" />
                 <span>Analytics</span>
               </Link>
-              <Link href="/activities" className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <Link href="/ActivityPage" className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                 <Activity className="w-5 h-5" />
                 <span>Activities</span>
               </Link>
             </div>
 
             {/* User Menu */}
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <Settings className="w-5 h-5 text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <User className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
+              <div className="flex items-center gap-2">
+                {/* <Link href="/settings">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <Settings className="w-5 h-5 text-gray-600" />
+                  </button>
+                </Link> */}
+                <Link href="/Profile">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <User className="w-5 h-5 text-gray-600" />
+                  </button>
+                </Link>
+              </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Welcome Header */}
+        {/* Welcome Header with Simple Greeting */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}!
-          </h1>
-          <p className="text-lg text-gray-600">How are you feeling today?</p>
+          {isLoadingUser ? (
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
+              <h1 className="text-4xl font-bold text-gray-900">Loading...</h1>
+            </div>
+          ) : (
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              {getGreeting()}
+              {getUserFirstName() && (
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                  {`, ${getUserFirstName()}`}
+                </span>
+              )}
+              <span className="ml-2">👋</span>
+            </h1>
+          )}
+          <p className="text-lg text-gray-600 mb-2">
+            How are you feeling today?
+          </p>
+          <p className="text-sm text-gray-500">
+            {getFormattedDate()}
+          </p>
         </motion.div>
-
-        {/* Debug Info - Remove in production */}
-        {debugInfo && (
-          <div className="mb-4 p-3 bg-gray-800 text-white rounded-lg text-sm font-mono">
-            Debug: {debugInfo}
-          </div>
-        )}
 
         {/* Main Card - Quick Check-in */}
         <motion.div
@@ -440,6 +509,7 @@ export default function Dashboard() {
                     {moodEmojis.find(m => m.id === selectedMood)?.label}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setSelectedMood(null)}
                     className="ml-2 p-1 hover:bg-gray-200 rounded-full transition-colors"
                   >
@@ -459,15 +529,15 @@ export default function Dashboard() {
                 {moodEmojis.map((mood, index) => (
                   <motion.button
                     key={mood.id}
+                    type="button"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ scale: 1.05, y: -5 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      console.log("Setting selected mood to:", mood.id);
                       setSelectedMood(mood.id);
-                      setDebugInfo(`Selected: ${mood.id}`);
+                      requestAnimationFrame(() => noteTextareaRef.current?.focus());
                     }}
                     className={`
                       relative group flex flex-col items-center p-6 rounded-2xl
@@ -583,6 +653,7 @@ export default function Dashboard() {
                     return (
                       <motion.button
                         key={factor.id}
+                        type="button"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => toggleFactor(factor.id)}
@@ -653,6 +724,7 @@ export default function Dashboard() {
                   {getCurrentSuggestions().map((suggestion, index) => (
                     <motion.button
                       key={index}
+                      type="button"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setMoodNote(suggestion)}
@@ -674,6 +746,7 @@ export default function Dashboard() {
               >
                 <div className="relative">
                   <textarea
+                    ref={noteTextareaRef}
                     value={moodNote}
                     onChange={(e) => {
                       setMoodNote(e.target.value);
@@ -722,6 +795,7 @@ export default function Dashboard() {
                       <span className="font-semibold">AI Sentiment Analysis</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setShowSentiment(!showSentiment)}
                       className="p-1 hover:bg-white/20 rounded"
                     >
@@ -764,6 +838,7 @@ export default function Dashboard() {
                 className="flex gap-3"
               >
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={saveMoodEntry}
@@ -780,6 +855,7 @@ export default function Dashboard() {
                 </motion.button>
                 
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {

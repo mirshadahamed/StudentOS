@@ -41,7 +41,7 @@ console.log("SMS USER_ID:", process.env.SMSLENZ_USER_ID);
 console.log("PHONE:", phone);
 console.log("MESSAGE:", smsMessage);
 
-   // SMSlenz correct endpoint: https://www.smslenz.lk/api/send-sms
+   // SMSlenz correct endpoint
     const smsUrl = process.env.SMSLENZ_URL || "https://www.smslenz.lk/api/send-sms";
 
     // build request body with correct parameter names per SMSlenz docs

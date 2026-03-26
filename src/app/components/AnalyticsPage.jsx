@@ -322,8 +322,18 @@ useEffect(() => {
 
   const loadMoodData = async () => {
     try {
+      const userId = localStorage.getItem("student_user_id");
+      
+      if (!userId) {
+        console.warn("No user ID found in localStorage");
+        return;
+      }
 
-      const res = await fetch("/api/mood-history?userId=123");
+      const res = await fetch(`/api/mood-history?userId=${userId}`);
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
 
       const data = await res.json();
 
@@ -331,7 +341,7 @@ useEffect(() => {
         id: item._id,
         date: new Date(item.createdAt).toISOString().split("T")[0],
         mood: item.mood,
-        intensity: item.intensity || 3,
+        intensity: item.intensity || item.score || 3,
         factors: item.factors || [],
         notes: item.text,
         timestamp: new Date(item.createdAt).getTime()

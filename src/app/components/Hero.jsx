@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function HeroWithCards() {
   return (
@@ -49,21 +50,68 @@ export default function HeroWithCards() {
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: "🚗", title: "Speed", text: "Fast performance." },
-              { icon: "⚡", title: "Efficiency", text: "Smart engineering." },
-              { icon: "🛡️", title: "Safety", text: "Advanced protection." },
-              { icon: "🌟", title: "Comfort", text: "Luxury experience." },
+              { 
+                icon: "😊", 
+                title: "Mood Login", 
+                text: "Track and understand your emotions daily.",
+                href: "/MoodLogin",
+                color: "from-purple-500 to-pink-500"
+              },
+              { 
+                icon: "💰", 
+                title: "Finance", 
+                text: "Manage your finances smartly.",
+                href: "/finance",
+                color: "from-green-500 to-emerald-500"
+              },
+              { 
+                icon: "📊", 
+                title: "Smart Planning", 
+                text: "Plan your goals efficiently.",
+                href: "/planning",
+                color: "from-blue-500 to-cyan-500"
+              },
+              { 
+                icon: "🚀", 
+                title: "Analytics", 
+                text: "Gain insights from your data.",
+                href: "/analytics",
+                color: "from-orange-500 to-red-500"
+              },
             ].map((card, index) => (
-              <div
-                key={index}
-                className="rounded-2xl bg-white p-6 shadow-lg transition hover:-translate-y-2 hover:shadow-xl"
-              >
-                <div className="mb-4 text-4xl">{card.icon}</div>
-                <h3 className="mb-2 text-xl font-semibold">
-                  {card.title}
-                </h3>
-                <p className="text-gray-600">{card.text}</p>
-              </div>
+              <Link href={card.href} key={index}>
+                <div
+                  className={`group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer`}
+                >
+                  {/* Gradient overlay on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${card.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                  
+                  <div className="relative z-10">
+                    <div className="mb-4 text-5xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
+                      {card.icon}
+                    </div>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
+                      {card.title}
+                    </h3>
+                    <p className="text-gray-600">
+                      {card.text}
+                    </p>
+                    
+                    {/* Arrow indicator on hover */}
+                    <div className="mt-4 flex items-center gap-1 text-transparent group-hover:text-purple-600 transition-all duration-300">
+                      <span className="text-sm font-medium">Get started</span>
+                      <svg 
+                        className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
