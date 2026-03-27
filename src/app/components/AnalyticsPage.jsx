@@ -474,7 +474,7 @@ useEffect(() => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link 
-                href="/dashboard"
+                href="/MoodLogin"
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
@@ -495,9 +495,6 @@ useEffect(() => {
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <Download className="w-5 h-5 text-gray-600" />
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Share2 className="w-5 h-5 text-gray-600" />
-                </button>
               </div>
             </div>
           </div>
@@ -506,8 +503,7 @@ useEffect(() => {
           <div className="flex gap-4 mt-4 border-b border-gray-200">
             {[
               { id: "calendar", label: "Calendar", icon: CalendarDays },
-              { id: "timeline", label: "Timeline", icon: BarChart3 },
-              { id: "analytics", label: "Analytics", icon: LineChart }
+              { id: "timeline", label: "Timeline", icon: BarChart3 }
             ].map(tab => {
               const Icon = tab.icon;
               return (
@@ -762,83 +758,14 @@ useEffect(() => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">Mood Timeline</h2>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setChartType("line")}
-                      className={`p-2 rounded-lg transition-colors ${
-                        chartType === "line" ? "bg-purple-100 text-purple-600" : "hover:bg-gray-100"
-                      }`}
-                    >
-                      <LineChart className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setChartType("bar")}
-                      className={`p-2 rounded-lg transition-colors ${
-                        chartType === "bar" ? "bg-purple-100 text-purple-600" : "hover:bg-gray-100"
-                      }`}
-                    >
-                      <BarChart3 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Chart */}
-                <div className="h-64 relative mb-8">
-                  {chartType === "line" ? (
-                    <div className="absolute inset-0 flex items-end">
-                      {chartData.values.map((value, index) => {
-                        const height = (value / 5) * 100;
-                        const mood = chartData.moods[index];
-                        const color = moodDefinitions[mood]?.color.replace('text-', 'bg-').replace('500', '400');
-                        
-                        return (
-                          <motion.div
-                            key={index}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${height}%` }}
-                            transition={{ delay: index * 0.02 }}
-                            className="flex-1 mx-0.5 rounded-t relative group"
-                          >
-                            <div 
-                              className={`absolute bottom-0 w-full ${color} hover:opacity-80 transition-opacity rounded-t`}
-                              style={{ height: `${height}%` }}
-                            >
-                              <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap">
-                                {moodDefinitions[mood]?.name}: {value}/5
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {moodDistribution.filter(m => m.count > 0).map((item, index) => (
-                        <motion.div
-                          key={item.mood}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${item.percentage}%` }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-24 text-sm text-gray-600">{item.name}</div>
-                          <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full bg-gradient-to-r ${item.gradient}`}
-                              style={{ width: `${item.percentage}%` }}
-                            />
-                          </div>
-                          <div className="w-12 text-sm text-gray-600">{item.count}</div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* Timeline entries */}
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {filteredData.sort((a, b) => b.timestamp - a.timestamp).map((entry) => {
                     const mood = moodDefinitions[entry.mood];
+                    if (!mood) return null; // Skip entries with invalid moods
+                    
                     const Icon = mood.icon;
                     
                     return (
@@ -889,143 +816,6 @@ useEffect(() => {
                       </motion.div>
                     );
                   })}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Analytics View */}
-            {viewType === "analytics" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-6"
-              >
-                {/* Weekly Pattern */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Weekly Pattern</h2>
-                  <div className="h-48">
-                    <div className="flex h-full items-end gap-2">
-                      {weeklyAverages.map(({ day, average }) => {
-                        const height = (average / 5) * 100;
-                        return (
-                          <div key={day} className="flex-1 flex flex-col items-center gap-2">
-                            <div className="w-full flex justify-center">
-                              <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${height}%` }}
-                                className="w-8 bg-gradient-to-t from-purple-500 to-pink-500 rounded-t"
-                                style={{ height: `${height}%`, minHeight: 4 }}
-                              />
-                            </div>
-                            <span className="text-xs text-gray-500 rotate-45 origin-left">
-                              {day.slice(0, 3)}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Insights Section */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-purple-600" />
-                    Insights & Patterns
-                  </h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {insights.map((insight, index) => {
-                      const Icon = insight.icon;
-                      return (
-                        <motion.div
-                          key={insight.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className={`p-4 rounded-lg border-l-4 ${
-                            insight.type === 'pattern' ? 'border-l-blue-500 bg-blue-50' :
-                            insight.type === 'correlation' ? 'border-l-green-500 bg-green-50' :
-                            insight.type === 'achievement' ? 'border-l-orange-500 bg-orange-50' :
-                            'border-l-purple-500 bg-purple-50'
-                          }`}
-                        >
-                          <div className="flex gap-3">
-                            <div className={`p-2 rounded-lg ${
-                              insight.type === 'pattern' ? 'bg-blue-100' :
-                              insight.type === 'correlation' ? 'bg-green-100' :
-                              insight.type === 'achievement' ? 'bg-orange-100' :
-                              'bg-purple-100'
-                            }`}>
-                              <Icon className={`w-5 h-5 ${insight.color}`} />
-                            </div>
-                            <div>
-                              <h3 className="font-medium text-gray-900 mb-1">{insight.title}</h3>
-                              <p className="text-sm text-gray-600">{insight.description}</p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Mood Distribution */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Mood Distribution</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {moodDistribution.filter(m => m.count > 0).map((item) => (
-                      <div key={item.mood} className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className={`inline-block p-2 rounded-lg ${item.bg} mb-2`}>
-                          <item.icon className={`w-6 h-6 ${item.color}`} />
-                        </div>
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                        <div className="text-sm text-gray-500">{item.percentage.toFixed(1)}%</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Factor Analysis */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Factor Analysis</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {["Sleep", "Exercise", "Social", "Work", "Weather", "Stress"].map(factor => {
-                      const factorEntries = moodData.filter(e => e.factors.includes(factor));
-                      const avgMood = factorEntries.length 
-                        ? factorEntries.reduce((s, e) => s + e.intensity, 0) / factorEntries.length
-                        : 0;
-                      const percentage = (avgMood / 5) * 100;
-                      
-                      return (
-                        <div key={factor} className="p-3 border border-gray-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">{factor}</span>
-                            <span className="text-sm text-gray-500">{factorEntries.length} entries</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-full h-2"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-500">Avg mood:</span>
-                            <div className="flex gap-1">
-                              {[1,2,3,4,5].map(i => (
-                                <div
-                                  key={i}
-                                  className={`w-2 h-2 rounded-full ${
-                                    i <= avgMood ? 'bg-purple-500' : 'bg-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
               </motion.div>
             )}

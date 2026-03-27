@@ -9,8 +9,6 @@ import {
   Clock,
   Filter,
   Search,
-  Bookmark,
-  BookmarkCheck,
   Play,
   Pause,
   Wind,
@@ -24,32 +22,20 @@ import {
   Angry,
   Coffee,
   Music,
-  Book,
   PenTool,
   Users,
   Dumbbell,
-  Leaf,
-  Camera,
-  Headphones,
-  Star,
   Sparkles,
   Timer,
-  Calendar,
   ChevronDown,
   X,
   Activity,
-  ChevronRight,
   Check,
   Loader2,
   ArrowLeft,
-  Volume2,
-  VolumeX,
-  RotateCcw,
-  CircleDot,
-  RefreshCw,
   Award,
   TrendingUp,
-  BarChart3
+  RefreshCw
 } from "lucide-react";
 
 // Enhanced activities data with images and rich content
@@ -62,13 +48,12 @@ const activitiesData = [
     duration: 5,
     category: "mindfulness",
     moodTags: ["anxious", "stressed", "overwhelmed"],
-    saved: false,
     animation: "breathing",
     image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-blue-400 to-cyan-500",
     bgColor: "bg-blue-50",
-    icon: "🌬️",
+    // icon: "🌬️",
     benefits: ["Reduces stress", "Lowers heart rate", "Improves focus", "Calms anxiety"],
     instructions: [
       "Find a comfortable seated position",
@@ -95,13 +80,12 @@ const activitiesData = [
     duration: 10,
     category: "creative",
     moodTags: ["sad", "lonely", "low"],
-    saved: false,
     animation: "writing",
     image: "https://images.unsplash.com/photo-1516383740770-fbcc5ccbece0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1516383740770-fbcc5ccbece0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-amber-400 to-orange-500",
     bgColor: "bg-amber-50",
-    icon: "📝",
+    // icon: "📝",
     benefits: ["Boosts mood", "Increases optimism", "Improves sleep", "Builds resilience"],
     prompts: [
       "What made you smile today?",
@@ -118,20 +102,13 @@ const activitiesData = [
     duration: 7,
     category: "physical",
     moodTags: ["tired", "sluggish", "stressed"],
-    saved: false,
     animation: "stretching",
     image: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-green-400 to-emerald-500",
     bgColor: "bg-green-50",
-    icon: "🧘",
-    benefits: ["Reduces muscle tension", "Improves posture", "Boosts energy", "Increases flexibility"],
-    stretches: [
-      { name: "Neck Rolls", duration: 60, image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-      { name: "Shoulder Shrugs", duration: 60 },
-      { name: "Forward Fold", duration: 60 },
-      { name: "Cat-Cow Stretch", duration: 60 }
-    ]
+    // icon: "🧘",
+    benefits: ["Reduces muscle tension", "Improves posture", "Boosts energy", "Increases flexibility"]
   },
   {
     id: "4",
@@ -141,13 +118,12 @@ const activitiesData = [
     duration: 5,
     category: "physical",
     moodTags: ["energetic", "stressed", "angry"],
-    saved: false,
     animation: "pushup",
     image: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-red-400 to-rose-500",
     bgColor: "bg-red-50",
-    icon: "💪",
+    // icon: "💪",
     benefits: ["Builds upper body strength", "Releases tension", "Boosts confidence", "Improves posture"],
     sets: [
       { count: 5, rest: 15 },
@@ -170,13 +146,12 @@ const activitiesData = [
     duration: 15,
     category: "social",
     moodTags: ["lonely", "sad", "isolated"],
-    saved: false,
     animation: "calling",
     image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-purple-400 to-indigo-500",
     bgColor: "bg-purple-50",
-    icon: "📞",
+    // icon: "📞",
     benefits: ["Reduces loneliness", "Strengthens relationships", "Provides support", "Boosts mood"],
     conversationStarters: [
       "What's been the highlight of your week?",
@@ -193,13 +168,12 @@ const activitiesData = [
     duration: 20,
     category: "creative",
     moodTags: ["creative", "reflective", "calm"],
-    saved: false,
     animation: "drawing",
     image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-pink-400 to-rose-500",
     bgColor: "bg-pink-50",
-    icon: "🎨",
+    // icon: "🎨",
     benefits: ["Reduces stress", "Processes emotions", "Increases mindfulness", "Boosts creativity"],
     ideas: [
       "Draw your current emotion as an abstract shape",
@@ -216,21 +190,13 @@ const activitiesData = [
     duration: 30,
     category: "physical",
     moodTags: ["stressed", "anxious", "tired"],
-    saved: false,
     animation: "walking",
     image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-green-400 to-teal-500",
     bgColor: "bg-green-50",
-    icon: "🌳",
-    benefits: ["Reduces stress", "Improves mood", "Boosts vitamin D", "Increases creativity"],
-    mindfulnessPrompts: [
-      "Notice 5 things you can see",
-      "Notice 4 things you can feel",
-      "Notice 3 things you can hear",
-      "Notice 2 things you can smell",
-      "Notice 1 thing you can taste"
-    ]
+    // icon: "🌳",
+    benefits: ["Reduces stress", "Improves mood", "Boosts vitamin D", "Increases creativity"]
   },
   {
     id: "8",
@@ -240,22 +206,13 @@ const activitiesData = [
     duration: 15,
     category: "relaxation",
     moodTags: ["stressed", "tense", "anxious"],
-    saved: false,
     animation: "relaxation",
     image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-indigo-400 to-blue-500",
     bgColor: "bg-indigo-50",
-    icon: "😌",
-    benefits: ["Reduces physical tension", "Lowers anxiety", "Improves sleep", "Increases body awareness"],
-    muscleGroups: [
-      "Face and head",
-      "Shoulders and neck",
-      "Arms and hands",
-      "Chest and back",
-      "Stomach",
-      "Legs and feet"
-    ]
+    // icon: "😌",
+    benefits: ["Reduces physical tension", "Lowers anxiety", "Improves sleep", "Increases body awareness"]
   },
   {
     id: "9",
@@ -265,20 +222,13 @@ const activitiesData = [
     duration: 20,
     category: "relaxation",
     moodTags: ["anxious", "stressed", "tired"],
-    saved: false,
     animation: "music",
     image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-violet-400 to-purple-500",
     bgColor: "bg-violet-50",
-    icon: "🎵",
-    benefits: ["Lowers cortisol", "Reduces anxiety", "Improves focus", "Enhances mood"],
-    playlist: [
-      "Weightless - Marconi Union",
-      "Clair de Lune - Debussy",
-      "Gymnopédie No.1 - Satie",
-      "Spiegel im Spiegel - Arvo Pärt"
-    ]
+    // icon: "🎵",
+    benefits: ["Lowers cortisol", "Reduces anxiety", "Improves focus", "Enhances mood"]
   },
   {
     id: "10",
@@ -288,13 +238,12 @@ const activitiesData = [
     duration: 3,
     category: "physical",
     moodTags: ["sluggish", "tired", "stressed"],
-    saved: false,
     animation: "jumping",
     image: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-orange-400 to-red-500",
     bgColor: "bg-orange-50",
-    icon: "🏃",
+    // icon: "🏃",
     benefits: ["Boosts energy", "Improves circulation", "Releases endorphins", "Clears mind"],
     sets: [
       { count: 20, rest: 10 },
@@ -304,7 +253,7 @@ const activitiesData = [
   }
 ];
 
-// Enhanced mood definitions with colors and images
+// Mood definitions with colors and images
 const moods = [
   { id: "anxious", name: "Anxious", icon: Cloud, color: "text-yellow-600", bgColor: "bg-yellow-100", lightBg: "bg-yellow-50", gradient: "from-yellow-400 to-amber-500", image: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
   { id: "stressed", name: "Stressed", icon: Zap, color: "text-red-600", bgColor: "bg-red-100", lightBg: "bg-red-50", gradient: "from-red-400 to-rose-500", image: "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
@@ -359,7 +308,7 @@ const itemVariants = {
   }
 };
 
-// Breathing Animation Component (simplified with image)
+// Breathing Animation Component
 const BreathingAnimation = ({ isActive, isPaused, phase }) => {
   return (
     <div className="relative w-64 h-64 mx-auto">
@@ -389,7 +338,7 @@ const BreathingAnimation = ({ isActive, isPaused, phase }) => {
   );
 };
 
-// Push-up Animation Component (simplified with image)
+// Push-up Animation Component
 const PushupAnimation = ({ isActive, isPaused, currentSet, currentCount, totalSets }) => {
   return (
     <div className="relative w-64 h-64 mx-auto">
@@ -430,7 +379,6 @@ export default function ActivitiesPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDuration, setSelectedDuration] = useState("any");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isActive, setIsActive] = useState(false);
@@ -440,7 +388,6 @@ export default function ActivitiesPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [savingActivity, setSavingActivity] = useState(null);
   const [hoveredActivity, setHoveredActivity] = useState(null);
   const [breathingPhase, setBreathingPhase] = useState("inhale");
   const [showQuickStart, setShowQuickStart] = useState(true);
@@ -448,21 +395,18 @@ export default function ActivitiesPage() {
   const filteredActivities = useMemo(() => {
     let filtered = [...activities];
 
-    // Filter by mood
     if (selectedMood) {
       filtered = filtered.filter(activity =>
         activity.moodTags.includes(selectedMood)
       );
     }
 
-    // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(activity =>
         activity.category === selectedCategory
       );
     }
 
-    // Filter by duration
     if (selectedDuration !== "any") {
       filtered = filtered.filter(activity => {
         if (selectedDuration === "5") return activity.duration <= 10;
@@ -472,7 +416,6 @@ export default function ActivitiesPage() {
       });
     }
 
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(activity =>
         activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -480,13 +423,8 @@ export default function ActivitiesPage() {
       );
     }
 
-    // Saved filter
-    if (showSavedOnly) {
-      filtered = filtered.filter(activity => activity.saved);
-    }
-
     return filtered;
-  }, [activities, selectedMood, selectedCategory, selectedDuration, searchQuery, showSavedOnly]);
+  }, [activities, selectedMood, selectedCategory, selectedDuration, searchQuery]);
 
   // Timer effect for activity
   useEffect(() => {
@@ -494,7 +432,6 @@ export default function ActivitiesPage() {
     let phaseInterval;
     
     if (isActive && !isPaused && selectedActivity) {
-      // Breathing phase cycle
       if (selectedActivity.animation === "breathing" && selectedActivity.phases) {
         let phaseIndex = 0;
         phaseInterval = setInterval(() => {
@@ -503,7 +440,6 @@ export default function ActivitiesPage() {
         }, selectedActivity.phases[0].duration * 1000);
       }
 
-      // Main timer
       interval = setInterval(() => {
         setTimer(prev => {
           if (prev <= 0) {
@@ -518,7 +454,6 @@ export default function ActivitiesPage() {
             }
           }
 
-          // Update rep count for push-ups - every second
           if (selectedActivity.animation === "pushup" && currentCount > 0) {
             setCurrentCount(prev => Math.max(0, prev - 1));
           }
@@ -558,20 +493,6 @@ export default function ActivitiesPage() {
     setCurrentCount(0);
   };
 
-  // Toggle save activity
-  const toggleSave = async (id) => {
-    setSavingActivity(id);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setActivities(prev =>
-      prev.map(activity =>
-        activity.id === id
-          ? { ...activity, saved: !activity.saved }
-          : activity
-      )
-    );
-    setSavingActivity(null);
-  };
-
   const getMoodSuggestion = () => {
     if (!selectedMood) return null;
     const moodActivities = activities.filter(a => a.moodTags.includes(selectedMood));
@@ -602,7 +523,6 @@ export default function ActivitiesPage() {
             totalSets={selectedActivity.sets?.length || 0}
           />
         );
-
       case "breathing":
         return (
           <BreathingAnimation 
@@ -611,7 +531,6 @@ export default function ActivitiesPage() {
             phase={breathingPhase}
           />
         );
-
       default:
         return (
           <div className="relative w-64 h-64 mx-auto">
@@ -645,60 +564,57 @@ export default function ActivitiesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Header */}
+      {/* Header - Invisible background */}
       <motion.div
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-gray-200"
+        className="sticky top-0 z-10"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {selectedActivity ? (
+              {/* Back button - Show when no activity is selected */}
+              {!selectedActivity && (
+                <Link href="/MoodLogin">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-2 hover:bg-gray-100 rounded-lg bg-white/50 backdrop-blur-sm"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-gray-600" />
+                  </motion.button>
+                </Link>
+              )}
+              {selectedActivity && (
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={resetActivity}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-gray-100 rounded-lg bg-white/50 backdrop-blur-sm"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </motion.button>
-              ) : null}
+              )}
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg">
+                <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
-                <motion.h1 className="text-2xl font-bold text-gray-900">
+                <motion.h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {selectedActivity ? selectedActivity.title : "Wellness Activities"}
                 </motion.h1>
               </div>
             </div>
             <div className="flex items-center gap-4">
               {!selectedActivity && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowSavedOnly(!showSavedOnly)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      showSavedOnly 
-                        ? 'bg-purple-600 text-white shadow-lg' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <BookmarkCheck className="w-5 h-5" />
-                    <span className="hidden sm:inline">Saved</span>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors lg:hidden"
-                  >
-                    <Filter className="w-5 h-5" />
-                    <span>Filters</span>
-                  </motion.button>
-                </>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-sm text-gray-600 rounded-lg hover:bg-white/70 transition-colors lg:hidden"
+                >
+                  <Filter className="w-5 h-5" />
+                  <span>Filters</span>
+                </motion.button>
               )}
             </div>
           </div>
@@ -707,7 +623,7 @@ export default function ActivitiesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {selectedActivity ? (
-          // Activity Detail View with rich content
+          // Activity Detail View
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -736,14 +652,10 @@ export default function ActivitiesPage() {
 
             <div className="p-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left side - Animation */}
                 <div className={`${selectedActivity.bgColor} rounded-xl p-8 flex items-center justify-center min-h-[400px]`}>
                   {renderActivityAnimation()}
                 </div>
-
-                {/* Right side - Controls and Info */}
                 <div className="space-y-6">
-                  {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-gray-50 rounded-xl">
                       <Clock className="w-5 h-5 mx-auto mb-2 text-purple-600" />
@@ -762,7 +674,6 @@ export default function ActivitiesPage() {
                     </div>
                   </div>
 
-                  {/* Benefits */}
                   {selectedActivity.benefits && (
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-3">Benefits</h3>
@@ -776,7 +687,6 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  {/* Phase indicator for breathing */}
                   {selectedActivity.animation === "breathing" && isActive && (
                     <div className="p-4 bg-purple-50 rounded-xl">
                       <div className="text-center">
@@ -799,7 +709,6 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  {/* Instructions/Prompts */}
                   {selectedActivity.instructions && (
                     <div>
                       <button
@@ -826,7 +735,6 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  {/* Conversation Starters for social activities */}
                   {selectedActivity.conversationStarters && (
                     <div className="p-4 bg-purple-50 rounded-xl">
                       <h3 className="font-semibold text-purple-900 mb-3">Conversation Starters</h3>
@@ -838,7 +746,6 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  {/* Tips */}
                   {selectedActivity.tips && (
                     <div className="p-4 bg-blue-50 rounded-xl">
                       <h3 className="font-semibold text-blue-900 mb-2">💡 Tips</h3>
@@ -850,7 +757,6 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  {/* Controls */}
                   <div className="flex gap-4 pt-4">
                     {!isActive && !completed ? (
                       <motion.button
@@ -899,7 +805,7 @@ export default function ActivitiesPage() {
             </div>
           </motion.div>
         ) : (
-          // Activities Grid View with beautiful cards
+          // Activities Grid View
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar - Filters with images */}
             <AnimatePresence mode="wait">
@@ -961,7 +867,7 @@ export default function ActivitiesPage() {
                       })}
                     </div>
 
-                    {/* Category filter with icons */}
+                    {/* Category filter */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Category
@@ -1045,7 +951,7 @@ export default function ActivitiesPage() {
                     </div>
 
                     {/* Clear filters */}
-                    {(selectedMood || selectedCategory !== "all" || selectedDuration !== "any" || searchQuery || showSavedOnly) && (
+                    {(selectedMood || selectedCategory !== "all" || selectedDuration !== "any" || searchQuery) && (
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1055,7 +961,6 @@ export default function ActivitiesPage() {
                           setSelectedCategory("all");
                           setSelectedDuration("any");
                           setSearchQuery("");
-                          setShowSavedOnly(false);
                         }}
                         className="mt-4 text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
                       >
@@ -1074,7 +979,40 @@ export default function ActivitiesPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex-1"
             >
-              {/* "Feeling [mood]? Try these" section - Enhanced with images */}
+              {/* Wellness Activities Heading */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8"
+              >
+                {/* <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Wellness Activities
+                  </h1>
+                </div>
+                <p className="text-gray-600 ml-11">
+                  Discover calming activities to nurture your mind and body
+                </p> */}
+              </motion.div>
+
+              {/* Filter Toggle Button for Mobile */}
+              <div className="lg:hidden flex justify-end mb-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-md"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span>Filters</span>
+                </motion.button>
+              </div>
+
+              {/* "Feeling [mood]? Try these" section */}
               {suggestion && suggestion.count > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -1115,7 +1053,7 @@ export default function ActivitiesPage() {
                 </motion.div>
               )}
 
-              {/* Activities grid - Beautiful cards with images */}
+              {/* Activities grid */}
               <AnimatePresence mode="wait">
                 {filteredActivities.length > 0 ? (
                   <motion.div
@@ -1157,36 +1095,6 @@ export default function ActivitiesPage() {
                           <div className="absolute top-3 right-3 text-3xl">
                             {activity.icon}
                           </div>
-
-                          {/* Save Button */}
-                          <motion.button
-                            whileHover={{ scale: 1.2 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleSave(activity.id);
-                            }}
-                            className="absolute bottom-3 right-3 p-2 bg-white/90 backdrop-blur rounded-full shadow-lg hover:bg-white transition-colors"
-                          >
-                            {savingActivity === activity.id ? (
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              >
-                                <Loader2 className="w-4 h-4 text-purple-600" />
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                animate={activity.saved ? { scale: [1, 1.2, 1] } : {}}
-                              >
-                                {activity.saved ? (
-                                  <BookmarkCheck className="w-4 h-4 text-purple-600" />
-                                ) : (
-                                  <Bookmark className="w-4 h-4 text-gray-600" />
-                                )}
-                              </motion.div>
-                            )}
-                          </motion.button>
                         </div>
                         
                         {/* Card Content */}
