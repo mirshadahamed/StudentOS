@@ -66,6 +66,7 @@ interface SentimentAnalysis {
   score: number;
   label: "positive" | "neutral" | "negative";
   confidence: number;
+  mood?: string;
 }
 
 interface UserData {
@@ -84,15 +85,6 @@ const moodEmojis = [
   { id: "anxious", emoji: "😰", label: "Anxious", color: "text-indigo-500", bg: "bg-indigo-500", lightBg: "bg-indigo-50", gradient: "from-indigo-400 to-blue-500", value: 2 },
   { id: "sad", emoji: "😢", label: "Sad", color: "text-blue-500", bg: "bg-blue-500", lightBg: "bg-blue-50", gradient: "from-blue-400 to-cyan-500", value: 1 },
   { id: "angry", emoji: "😠", label: "Angry", color: "text-red-500", bg: "bg-red-500", lightBg: "bg-red-50", gradient: "from-red-400 to-rose-500", value: 1 }
-];
-
-// Quick mood options with enhanced styling
-const quickMoods = [
-  { id: "great", text: "Feeling Great!", icon: Sun, color: "text-yellow-500", bg: "bg-yellow-50", border: "border-yellow-200" },
-  { id: "good", text: "Pretty Good", icon: ThumbsUp, color: "text-green-500", bg: "bg-green-50", border: "border-green-200" },
-  { id: "okay", text: "Just Okay", icon: Meh, color: "text-gray-500", bg: "bg-gray-50", border: "border-gray-200" },
-  { id: "bad", text: "Not Great", icon: Frown, color: "text-blue-500", bg: "bg-blue-50", border: "border-blue-200" },
-  { id: "awful", text: "Awful", icon: Angry, color: "text-red-500", bg: "bg-red-50", border: "border-red-200" }
 ];
 
 // Activity suggestions based on mood
@@ -139,9 +131,11 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   
+  // Refs for debounce and tracking
   const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const selectedMoodRef = useRef<string | null>(null);
   const moodNoteRef = useRef("");
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     selectedMoodRef.current = selectedMood;
@@ -178,37 +172,40 @@ export default function Dashboard() {
     fetchUserData();
   }, []);
   
-  // Simulate sentiment analysis
+  // Updated sentiment analysis function with auto-mood selection
   const analyzeSentiment = async (text: string) => {
     try {
       setIsAnalyzing(true);
 
       const res = await fetch("/api/analyze-mood", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ text }),
       });
 
       const data = await res.json();
 
-      const result = data[0]; // HuggingFace response
-
-      let label: "positive" | "neutral" | "negative" = "neutral";
-
-      if (result.label.toLowerCase().includes("sad")) {
-        label = "negative";
-      } else if (result.label.toLowerCase().includes("joy")) {
-        label = "positive";
+      if (!res.ok) {
+        console.error(data.error);
+        return;
       }
 
       setSentiment({
-        score: result.score,
-        label,
-        confidence: result.score,
+        score: data.score,
+        label: data.label,
+        confidence: data.score,
+        mood: data.mood,
       });
 
+      // 🔥 AUTO SELECT MOOD (ONLY if user didn't pick emoji)
+      if (!selectedMoodRef.current && data.mood) {
+        setSelectedMood(data.mood);
+      }
+
     } catch (error) {
-      console.error(error);
+      console.error("Sentiment error:", error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -388,6 +385,15 @@ export default function Dashboard() {
     return null;
   };
 
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Navigation Bar */}
@@ -419,18 +425,13 @@ export default function Dashboard() {
             </div>
 
             {/* User Menu */}
-              <div className="flex items-center gap-2">
-                {/* <Link href="/settings">
-                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Settings className="w-5 h-5 text-gray-600" />
-                  </button>
-                </Link> */}
-                <Link href="/Profile">
-                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <User className="w-5 h-5 text-gray-600" />
-                  </button>
-                </Link>
-              </div>
+            <div className="flex items-center gap-2">
+              <Link href="/Profile">
+                <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <User className="w-5 h-5 text-gray-600" />
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -485,20 +486,28 @@ export default function Dashboard() {
 
           {/* Card Body */}
           <div className="p-8">
-            {/* Mood Selection Title */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mb-6"
-            >
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                {!selectedMood ? "Choose your mood" : "You selected:"}
-              </h3>
-              {selectedMood && (
+            {/* Selected Mood Display */}
+            {selectedMood && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-700">Selected mood:</h3>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMood(null)}
+                    className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear
+                  </button>
+                </div>
                 <motion.div
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
-                  className={`inline-flex items-center gap-3 px-4 py-2 rounded-full ${
+                  className={`inline-flex items-center gap-3 px-4 py-2 rounded-full mt-2 ${
                     moodEmojis.find(m => m.id === selectedMood)?.lightBg
                   }`}
                 >
@@ -508,24 +517,16 @@ export default function Dashboard() {
                   <span className="font-medium text-gray-700">
                     {moodEmojis.find(m => m.id === selectedMood)?.label}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMood(null)}
-                    className="ml-2 p-1 hover:bg-gray-200 rounded-full transition-colors"
-                  >
-                    <X className="w-4 h-4 text-gray-500" />
-                  </button>
                 </motion.div>
-              )}
-            </motion.div>
+              </motion.div>
+            )}
 
-            {/* Emoji Grid */}
-            {!selectedMood ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"
-              >
+            {/* Emoji Grid - Always Visible */}
+            <div className="mb-8">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">
+                {!selectedMood ? "Choose your mood" : "Or change your mood"}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {moodEmojis.map((mood, index) => (
                   <motion.button
                     key={mood.id}
@@ -542,7 +543,8 @@ export default function Dashboard() {
                     className={`
                       relative group flex flex-col items-center p-6 rounded-2xl
                       transition-all duration-300
-                      ${mood.lightBg} hover:shadow-lg
+                      ${selectedMood === mood.id ? `${mood.lightBg} ring-2 ring-purple-500 ring-offset-2` : mood.lightBg}
+                      hover:shadow-lg
                       border-2 border-transparent hover:border-${mood.color.split('-')[1]}-200
                     `}
                   >
@@ -567,222 +569,71 @@ export default function Dashboard() {
                       {mood.label}
                     </span>
                     
-                    {/* Value indicator */}
-                    <div className="absolute top-2 right-2">
-                      <div className={`w-2 h-2 rounded-full ${mood.bg} opacity-50`} />
-                    </div>
-                  </motion.button>
-                ))}
-              </motion.div>
-            ) : (
-              /* Intensity Slider */
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-8"
-              >
-                <div className="bg-gray-50 rounded-2xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="text-sm font-medium text-gray-700">
-                      How intense is this feeling?
-                    </label>
-                    <motion.div
-                      key={moodIntensity}
-                      initial={{ scale: 1.2 }}
-                      animate={{ scale: 1 }}
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        moodIntensity <= 2 ? 'bg-blue-100 text-blue-700' :
-                        moodIntensity <= 4 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {moodIntensity <= 2 ? 'Mild' : moodIntensity <= 4 ? 'Moderate' : 'Intense'}
-                    </motion.div>
-                  </div>
-                  
-                  <input
-                    type="range"
-                    min="1"
-                    max="5"
-                    value={moodIntensity}
-                    onChange={(e) => setMoodIntensity(Number(e.target.value))}
-                    className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                    style={{
-                      background: `linear-gradient(to right, 
-                        ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '#')} 0%, 
-                        ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '#')} ${(moodIntensity/5)*100}%, 
-                        #e5e7eb ${(moodIntensity/5)*100}%, 
-                        #e5e7eb 100%)`
-                    }}
-                  />
-                  
-                  <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-                    <span>😌 Mild</span>
-                    <span>😐 Moderate</span>
-                    <span>😫 Intense</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* What's Affecting Your Mood Section */}
-            {selectedMood && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Activity className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-700">
-                    What's affecting your mood?
-                  </h3>
-                  <span className="text-xs text-gray-400 ml-auto">
-                    Select all that apply
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {moodFactors.map((factor) => {
-                    const Icon = factor.icon;
-                    const isSelected = selectedFactors.includes(factor.id);
-                    
-                    return (
-                      <motion.button
-                        key={factor.id}
-                        type="button"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => toggleFactor(factor.id)}
-                        className={`
-                          relative flex flex-col items-center p-4 rounded-xl
-                          transition-all duration-200
-                          ${isSelected 
-                            ? `${factor.bg} ${factor.color} ring-2 ring-offset-2 ring-${factor.color.split('-')[1]}-500` 
-                            : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
-                          }
-                        `}
-                      >
-                        <Icon className={`w-5 h-5 mb-2 ${isSelected ? factor.color : 'text-gray-400'}`} />
-                        <span className={`text-xs font-medium ${isSelected ? factor.color : 'text-gray-500'}`}>
-                          {factor.label}
-                        </span>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center"
-                          >
-                            <Check className="w-3 h-3 text-white" />
-                          </motion.div>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-                
-                {/* Selected factors summary */}
-                {selectedFactors.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-4 flex flex-wrap gap-2"
-                  >
-                    <span className="text-xs text-gray-500">Selected:</span>
-                    {selectedFactors.map(factorId => {
-                      const factor = moodFactors.find(f => f.id === factorId);
-                      return factor ? (
-                        <span
-                          key={factor.id}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${factor.bg} ${factor.color}`}
-                        >
-                          <factor.icon className="w-3 h-3" />
-                          {factor.label}
-                        </span>
-                      ) : null;
-                    })}
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-
-            {/* Quick Suggestions - Based on selected mood */}
-            {selectedMood && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <Coffee className="w-4 h-4 text-purple-600" />
-                  <h4 className="text-sm font-medium text-gray-700">Suggested activities:</h4>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {getCurrentSuggestions().map((suggestion, index) => (
-                    <motion.button
-                      key={index}
-                      type="button"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setMoodNote(suggestion)}
-                      className="px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm hover:bg-purple-100 transition-colors"
-                    >
-                      {suggestion}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Text Input - Only appears when mood is selected */}
-            {selectedMood && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6"
-              >
-                <div className="relative">
-                  <textarea
-                    ref={noteTextareaRef}
-                    value={moodNote}
-                    onChange={(e) => {
-                      setMoodNote(e.target.value);
-                      if (e.target.value.length > 10) {
-                        analyzeSentiment(e.target.value);
-                      }
-                    }}
-                    placeholder=" "
-                    className="w-full p-4 pt-6 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all peer"
-                    rows={3}
-                  />
-                  <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 left-4 origin-[0] peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-4 peer-focus:scale-75">
-                    Write about your mood (optional)
-                  </label>
-                  
-                  {/* Sentiment Analysis Indicator */}
-                  <AnimatePresence>
-                    {isAnalyzing && (
+                    {/* Selected indicator */}
+                    {selectedMood === mood.id && (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute bottom-4 right-4 flex items-center gap-2 text-sm bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 right-2"
                       >
-                        <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                        <span className="text-gray-600">Analyzing...</span>
+                        <Check className="w-4 h-4 text-purple-600" />
                       </motion.div>
                     )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Text Input - Always Visible */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">
+                Write about your day
+              </h3>
+              <div className="relative">
+                <textarea
+                  ref={noteTextareaRef}
+                  value={moodNote}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setMoodNote(value);
+
+                    // Clear existing timer
+                    if (debounceTimer.current) {
+                      clearTimeout(debounceTimer.current);
+                    }
+
+                    // Set new timer with debounce (500ms delay)
+                    debounceTimer.current = setTimeout(() => {
+                      if (value.trim().length > 15) {
+                        analyzeSentiment(value);
+                      }
+                    }, 500);
+                  }}
+                  placeholder="How was your day? What's on your mind?..."
+                  className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder:text-gray-400 bg-white"
+                  rows={4}
+                />
+                
+                {/* Sentiment Analysis Indicator */}
+                <AnimatePresence>
+                  {isAnalyzing && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="absolute bottom-4 right-4 flex items-center gap-2 text-sm bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg"
+                    >
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                      <span className="text-gray-600">Analyzing...</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
 
             {/* Real-time Sentiment Display */}
             <AnimatePresence>
-              {sentiment && showSentiment && (
+              {sentiment && showSentiment && moodNote.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -826,11 +677,178 @@ export default function Dashboard() {
                   <p className="text-sm text-white/80 mt-2">
                     Confidence: {(sentiment.confidence * 100).toFixed(0)}%
                   </p>
+                  
+                  {sentiment.mood && !selectedMoodRef.current && (
+                    <p className="text-sm text-white/90 mt-2 italic">
+                      Detected mood: {sentiment.mood}
+                    </p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Save Button */}
+            {/* Additional Options - Only show when mood is selected */}
+            {selectedMood && (
+              <>
+                {/* Intensity Slider */}
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-8"
+                >
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-sm font-medium text-gray-700">
+                        How intense is this feeling?
+                      </label>
+                      <motion.div
+                        key={moodIntensity}
+                        initial={{ scale: 1.2 }}
+                        animate={{ scale: 1 }}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          moodIntensity <= 2 ? 'bg-blue-100 text-blue-700' :
+                          moodIntensity <= 4 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {moodIntensity <= 2 ? 'Mild' : moodIntensity <= 4 ? 'Moderate' : 'Intense'}
+                      </motion.div>
+                    </div>
+                    
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      value={moodIntensity}
+                      onChange={(e) => setMoodIntensity(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                      style={{
+                        background: `linear-gradient(to right, 
+                          ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '#')} 0%, 
+                          ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '#')} ${(moodIntensity/5)*100}%, 
+                          #e5e7eb ${(moodIntensity/5)*100}%, 
+                          #e5e7eb 100%)`
+                      }}
+                    />
+                    
+                    <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+                      <span>😌 Mild</span>
+                      <span>😐 Moderate</span>
+                      <span>😫 Intense</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* What's Affecting Your Mood Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Activity className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-700">
+                      What's affecting your mood?
+                    </h3>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      Select all that apply
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {moodFactors.map((factor) => {
+                      const Icon = factor.icon;
+                      const isSelected = selectedFactors.includes(factor.id);
+                      
+                      return (
+                        <motion.button
+                          key={factor.id}
+                          type="button"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => toggleFactor(factor.id)}
+                          className={`
+                            relative flex flex-col items-center p-4 rounded-xl
+                            transition-all duration-200
+                            ${isSelected 
+                              ? `${factor.bg} ${factor.color} ring-2 ring-offset-2 ring-${factor.color.split('-')[1]}-500` 
+                              : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
+                            }
+                          `}
+                        >
+                          <Icon className={`w-5 h-5 mb-2 ${isSelected ? factor.color : 'text-gray-400'}`} />
+                          <span className={`text-xs font-medium ${isSelected ? factor.color : 'text-gray-500'}`}>
+                            {factor.label}
+                          </span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center"
+                            >
+                              <Check className="w-3 h-3 text-white" />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Selected factors summary */}
+                  {selectedFactors.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-4 flex flex-wrap gap-2"
+                    >
+                      <span className="text-xs text-gray-500">Selected:</span>
+                      {selectedFactors.map(factorId => {
+                        const factor = moodFactors.find(f => f.id === factorId);
+                        return factor ? (
+                          <span
+                            key={factor.id}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${factor.bg} ${factor.color}`}
+                          >
+                            <factor.icon className="w-3 h-3" />
+                            {factor.label}
+                          </span>
+                        ) : null;
+                      })}
+                    </motion.div>
+                  )}
+                </motion.div>
+
+                {/* Quick Suggestions - Based on selected mood */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Coffee className="w-4 h-4 text-purple-600" />
+                    <h4 className="text-sm font-medium text-gray-700">Suggested activities:</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {getCurrentSuggestions().map((suggestion, index) => (
+                      <motion.button
+                        key={index}
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMoodNote(suggestion)}
+                        className="px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm hover:bg-purple-100 transition-colors"
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+
+            {/* Save Button - Only show when there's content */}
             {(selectedMood || moodNote) && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -863,6 +881,7 @@ export default function Dashboard() {
                     setMoodNote("");
                     setSentiment(null);
                     setSelectedFactors([]);
+                    setMoodIntensity(3);
                   }}
                   className="px-6 py-4 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
                 >
@@ -871,7 +890,7 @@ export default function Dashboard() {
               </motion.div>
             )}
 
-            {/* Quick Tips */}
+            {/* Quick Tips - Only show when no mood or note */}
             {!selectedMood && !moodNote && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -885,7 +904,7 @@ export default function Dashboard() {
                   <div>
                     <h4 className="text-sm font-semibold text-purple-900 mb-1">Quick Tip</h4>
                     <p className="text-sm text-purple-700">
-                      Select a mood above to get personalized activity suggestions and track your emotional journey.
+                      Select a mood or write about your day to get started. Our AI will help analyze your emotions!
                     </p>
                   </div>
                 </div>
