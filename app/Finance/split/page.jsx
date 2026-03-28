@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Users, Plus, Trash2, Send, Receipt, SplitSquareHorizontal, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Trash2, Send, Receipt, SplitSquareHorizontal, AlertCircle } from 'lucide-react';
 
 export default function SplitBillPage() {
   const [splits, setSplits] = useState([]);
@@ -17,6 +17,13 @@ export default function SplitBillPage() {
   const [friends, setFriends] = useState([{ name: '', email: '', amount: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Unified Validation State
+  const [errors, setErrors] = useState([]);
+  const [errorFields, setErrorFields] = useState({});
+
+  // Regex for validating email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const fetchSplits = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/splits');
@@ -27,26 +34,84 @@ export default function SplitBillPage() {
 
   useEffect(() => { fetchSplits(); }, []);
 
-  const addFriend = () => setFriends([...friends, { name: '', email: '', amount: '' }]);
-  const removeFriend = (index) => setFriends(friends.filter((_, i) => i !== index));
+  const addFriend = () => {
+    setFriends([...friends, { name: '', email: '', amount: '' }]);
+    setErrors([]); 
+  };
+  
+  const removeFriend = (index) => {
+    setFriends(friends.filter((_, i) => i !== index));
+    setErrors([]); 
+  };
   
   const updateFriend = (index, field, value) => {
     const newFriends = [...friends];
     newFriends[index][field] = value;
     setFriends(newFriends);
+    if (errors.length > 0) setErrors([]); 
+    if (Object.keys(errorFields).length > 0) setErrorFields({});
   };
 
-  // Calculate totals for validation
   const validFriends = friends.filter(f => f.name.trim() !== '');
   const totalCustomAssigned = validFriends.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
   const isOverBudget = splitMethod === 'custom' && totalCustomAssigned > parseFloat(totalAmount || 0);
 
+  // --- CUSTOM VALIDATION ENGINE ---
   const handleSplit = async (e) => {
     e.preventDefault();
-    if (!title || !totalAmount) return;
-    if (isOverBudget) return alert("Custom amounts exceed the total bill!");
     
+    let newErrors = [];
+    let newErrorFields = {};
+
+    // 1. Check Title
+    if (!title.trim()) {
+      newErrors.push("Please specify what the bill was for.");
+      newErrorFields.title = true;
+    }
+
+    // 2. Check Total Amount
+    if (!totalAmount || parseFloat(totalAmount) <= 0) {
+      newErrors.push("Please enter a valid total bill amount.");
+      newErrorFields.totalAmount = true;
+    }
+
+    // 3. Check Friends List
+    if (validFriends.length === 0) {
+      newErrors.push("You must add at least one person to split the bill with.");
+      newErrorFields.friends = true;
+    }
+
+    // 4. NEW: Check Emails Format
+    const hasInvalidEmails = validFriends.some(f => !f.email || !emailRegex.test(f.email));
+    if (hasInvalidEmails) {
+      newErrors.push("Please enter a valid email address for everyone so we can send alerts.");
+      newErrorFields.emails = true;
+    }
+
+    // 5. Check Custom Amounts & Budget
+    if (splitMethod === 'custom') {
+      const hasMissingAmounts = validFriends.some(f => !f.amount || parseFloat(f.amount) <= 0);
+      if (hasMissingAmounts) {
+        newErrors.push("Please enter a valid custom amount for all listed friends.");
+        newErrorFields.customAmounts = true;
+      }
+      if (isOverBudget) {
+        newErrors.push("Custom amounts exceed the total bill amount!");
+        newErrorFields.budget = true;
+      }
+    }
+
+    // Halt submission if there are errors
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
+      setErrorFields(newErrorFields);
+      return; 
+    }
+
+    // Pass Validation! Proceed with submission.
     setIsSubmitting(true);
+    setErrors([]);
+    setErrorFields({});
     
     let membersData = [];
 
@@ -83,7 +148,6 @@ export default function SplitBillPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 font-sans relative overflow-hidden">
       
-      {/* Premium Background Glow */}
       <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-rose-600/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[150px] pointer-events-none" />
 
@@ -112,57 +176,79 @@ export default function SplitBillPage() {
           <div className="lg:col-span-3 bg-neutral-900/40 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-[50px] -mr-10 -mt-10" />
             
-            <form onSubmit={handleSplit} className="space-y-6 relative z-10">
+            <form onSubmit={handleSplit} noValidate className="space-y-6 relative z-10">
               
-              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">What was it for?</label>
-                  <input required type="text" placeholder="e.g. PickMe to Galle Face" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-inner text-white" />
+                  <input 
+                    type="text" placeholder="e.g. PickMe to Galle Face" value={title} 
+                    onChange={e => { setTitle(e.target.value); setErrors([]); setErrorFields({}); }} 
+                    className={`w-full bg-black/60 border rounded-2xl px-5 py-4 focus:outline-none focus:ring-4 transition-all shadow-inner text-white 
+                      ${errorFields.title ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-white/10 focus:border-rose-500/50 focus:ring-rose-500/10'}`} 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Total Bill Amount</label>
                   <div className="relative group/input">
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-xs transition-colors group-focus-within/input:text-rose-400">LKR</span>
-                    <input required type="number" step="1" min="1" placeholder="0" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all text-rose-400 font-black text-xl shadow-inner" />
+                    <span className={`absolute left-5 top-1/2 -translate-y-1/2 font-bold text-xs transition-colors ${errorFields.totalAmount ? 'text-red-400' : 'text-neutral-500 group-focus-within/input:text-rose-400'}`}>LKR</span>
+                    <input 
+                      type="number" step="1" min="1" placeholder="0" value={totalAmount} 
+                      onChange={e => { setTotalAmount(e.target.value); setErrors([]); setErrorFields({}); }} 
+                      className={`w-full bg-black/60 border rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:ring-4 transition-all text-rose-400 font-black text-xl shadow-inner
+                        ${errorFields.totalAmount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-white/10 focus:border-rose-500/50 focus:ring-rose-500/10'}`} 
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Split Method Toggle */}
               <div className="bg-black/40 p-1.5 rounded-2xl flex items-center border border-white/5 shadow-inner">
-                <button type="button" onClick={() => setSplitMethod('equal')} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'equal' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
+                <button type="button" onClick={() => { setSplitMethod('equal'); setErrors([]); setErrorFields({}); }} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'equal' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
                   Split Equally
                 </button>
-                <button type="button" onClick={() => setSplitMethod('custom')} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'custom' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
+                <button type="button" onClick={() => { setSplitMethod('custom'); setErrors([]); setErrorFields({}); }} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'custom' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
                   Custom Amounts
                 </button>
               </div>
 
-              {/* Friends List */}
               <div className="space-y-4 pt-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400">Who owes you?</label>
                 <AnimatePresence>
-                  {friends.map((friend, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="flex gap-3 items-center bg-black/20 p-2 rounded-2xl border border-white/5 shadow-sm">
-                      <input type="text" placeholder="Name" required value={friend.name} onChange={e => updateFriend(index, 'name', e.target.value)} className="w-1/3 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 focus:border-rose-500 focus:outline-none text-sm text-white transition-colors" />
-                      <input type="email" placeholder="Email (for auto-alert)" value={friend.email} onChange={e => updateFriend(index, 'email', e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 focus:border-rose-500 focus:outline-none text-sm text-white transition-colors" />
-                      
-                      {/* Show custom amount input ONLY if custom mode is selected */}
-                      {splitMethod === 'custom' && (
-                        <div className="relative w-32">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500/50 font-bold text-xs">LKR</span>
-                          <input type="number" step="1" placeholder="0" required value={friend.amount} onChange={e => updateFriend(index, 'amount', e.target.value)} className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold rounded-xl pl-10 pr-3 py-3.5 focus:border-rose-500 outline-none text-sm transition-colors" />
-                        </div>
-                      )}
+                  {friends.map((friend, index) => {
+                    // Check if this specific friend has an email error
+                    const isEmailInvalid = errorFields.emails && (!friend.email || !emailRegex.test(friend.email));
+                    
+                    return (
+                      <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className={`flex gap-3 items-center bg-black/20 p-2 rounded-2xl border shadow-sm ${errorFields.friends && friend.name.trim() === '' ? 'border-red-500/50' : 'border-white/5'}`}>
+                        <input 
+                          type="text" placeholder="Name" value={friend.name} onChange={e => updateFriend(index, 'name', e.target.value)} 
+                          className={`w-1/3 bg-black/40 border rounded-xl px-4 py-3.5 focus:outline-none text-sm text-white transition-colors ${errorFields.friends && friend.name.trim() === '' ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-rose-500'}`} 
+                        />
+                        
+                        {/* EMAIL INPUT WITH REGEX VALIDATION COLORING */}
+                        <input 
+                          type="email" placeholder="Email (for auto-alert)" value={friend.email} onChange={e => updateFriend(index, 'email', e.target.value)} 
+                          className={`flex-1 bg-black/40 border rounded-xl px-4 py-3.5 focus:outline-none text-sm text-white transition-colors ${isEmailInvalid ? 'border-red-500 focus:border-red-500 text-red-200' : 'border-white/10 focus:border-rose-500'}`} 
+                        />
+                        
+                        {splitMethod === 'custom' && (
+                          <div className="relative w-32">
+                            <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-bold text-xs ${errorFields.customAmounts && !friend.amount ? 'text-red-400' : 'text-rose-500/50'}`}>LKR</span>
+                            <input 
+                              type="number" step="1" placeholder="0" value={friend.amount} onChange={e => updateFriend(index, 'amount', e.target.value)} 
+                              className={`w-full bg-rose-500/10 border text-rose-400 font-bold rounded-xl pl-10 pr-3 py-3.5 outline-none text-sm transition-colors text-center ${errorFields.customAmounts && !friend.amount ? 'border-red-500 focus:border-red-500' : 'border-rose-500/30 focus:border-rose-500'}`} 
+                            />
+                          </div>
+                        )}
 
-                      {friends.length > 1 && (
-                        <button type="button" onClick={() => removeFriend(index)} className="p-3 text-neutral-500 hover:text-red-400 transition-colors bg-white/5 rounded-xl ml-1">
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </motion.div>
-                  ))}
+                        {friends.length > 1 && (
+                          <button type="button" onClick={() => removeFriend(index)} className="p-3 text-neutral-500 hover:text-red-400 transition-colors bg-white/5 rounded-xl ml-1">
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
                 
                 <button type="button" onClick={addFriend} className="text-rose-400 text-sm font-bold flex items-center gap-2 mt-3 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-5 py-3 rounded-xl transition-all border border-rose-500/20">
@@ -170,7 +256,6 @@ export default function SplitBillPage() {
                 </button>
               </div>
 
-              {/* Summary Footer */}
               <div className="pt-8 mt-4 border-t border-white/5">
                 {splitMethod === 'equal' ? (
                   <div className="flex justify-between items-center text-neutral-300 bg-black/40 p-5 rounded-2xl border border-white/5">
@@ -189,6 +274,28 @@ export default function SplitBillPage() {
                 )}
                 
                 {isOverBudget && <p className="text-red-400 text-sm mt-3 flex items-center justify-center gap-2 font-bold bg-red-500/10 p-3 rounded-xl"><AlertCircle size={16}/> Friends cannot owe more than the total bill!</p>}
+
+                {/* --- UNIFIED MULTI-ERROR DISPLAY --- */}
+                <AnimatePresence>
+                  {errors.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      className="mt-4 bg-red-500/10 border border-red-500/30 rounded-2xl overflow-hidden"
+                    >
+                      <div className="p-4 flex gap-3">
+                        <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                        <div>
+                          <p className="text-red-400 font-bold mb-1">Please fix the following to proceed:</p>
+                          <ul className="list-disc list-inside text-sm text-red-300 space-y-1">
+                            {errors.map((err, idx) => (
+                              <li key={idx}>{err}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <button type="submit" disabled={isSubmitting || isOverBudget} className="w-full mt-6 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 disabled:opacity-50 disabled:hover:bg-rose-600 text-white font-black text-lg py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] active:scale-95">
                   {isSubmitting ? 'Processing Network...' : <><Send size={22} /> Save & Send Alerts</>}
