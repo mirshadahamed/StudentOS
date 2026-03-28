@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-// The advanced Framer Motion 3D hooks
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
   Wallet, PiggyBank, Receipt, BrainCircuit, 
@@ -14,7 +13,6 @@ import {
   PieChart, Pie, Legend
 } from 'recharts';
 
-// Your custom background effect
 import MoneyRain from '../../components/MoneyRain';
 
 // --- 💎 INNOVATIVE CATEGORY CARD (TOP GRID) ---
@@ -44,7 +42,7 @@ const ModuleCard = ({ title, description, icon: Icon, link, color, delay }) => (
   </Link>
 );
 
-// --- 🧊 FIXED: INTERACTIVE 3D PARALLAX STAT CARD ---
+// --- 🧊 INTERACTIVE 3D PARALLAX STAT CARD ---
 const Interactive3DCard = ({ title, amount, subtitle, colorClass, icon: Icon }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -52,7 +50,6 @@ const Interactive3DCard = ({ title, amount, subtitle, colorClass, icon: Icon }) 
   const mouseXSpring = useSpring(x, { stiffness: 400, damping: 30 });
   const mouseYSpring = useSpring(y, { stiffness: 400, damping: 30 });
 
-  // Use raw numbers for perfect framer-motion calculations
   const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [15, -15]);
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-15, 15]);
 
@@ -77,17 +74,11 @@ const Interactive3DCard = ({ title, amount, subtitle, colorClass, icon: Icon }) 
       <motion.div
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ 
-          rotateX, 
-          rotateY, 
-          transformStyle: "preserve-3d" 
-        }}
-        // NO overflow-hidden here! Allows the 3D pop-out to work.
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         className="bg-neutral-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl relative group h-full cursor-pointer hover:border-white/20 transition-colors"
       >
         <div className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none ${colorClass}`} />
         
-        {/* Inner wrapper forcing 3D depth */}
         <div style={{ transform: "translateZ(60px)", transformStyle: "preserve-3d" }} className="relative z-10 pointer-events-none">
           <div className="flex justify-between items-start mb-4">
             <p className="text-neutral-400 text-sm font-bold uppercase tracking-wider">{title}</p>
@@ -141,7 +132,7 @@ const WealthTerrarium = ({ income, expenses }) => {
           </motion.div>
         </AnimatePresence>
         {state === 'thriving' && particles}
-        {state === 'critical' && <motion.div initial={{ y: -20, opacity: 1 }} animate={{ y: 80, opacity: 0 }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute text-rose-500 blur-[1px] font-bold">-$</motion.div>}
+        {state === 'critical' && <motion.div initial={{ y: -20, opacity: 1 }} animate={{ y: 80, opacity: 0 }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute text-rose-500 blur-[1px] font-bold">-LKR</motion.div>}
       </div>
       <div className="w-32 h-2 rounded-full bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.2)] mt-2 relative z-10" />
     </div>
@@ -242,9 +233,9 @@ export default function FinanceHub() {
 
         {/* --- THE NEW 3D INTERACTIVE CARDS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Interactive3DCard title="Total Income" amount={`$${stats.income.toFixed(2)}`} subtitle="All recorded earnings" colorClass="bg-blue-500" icon={TrendingUp} />
-          <Interactive3DCard title="Total Saved" amount={`$${stats.savings.toFixed(2)}`} subtitle="Across all savings goals" colorClass="bg-emerald-500" icon={PiggyBank} />
-          <Interactive3DCard title="Total Spent" amount={`$${stats.expenses.toFixed(2)}`} subtitle="Recorded outgoings" colorClass="bg-rose-500" icon={Wallet} />
+          <Interactive3DCard title="Total Income" amount={`LKR ${stats.income.toLocaleString()}`} subtitle="All recorded earnings" colorClass="bg-blue-500" icon={TrendingUp} />
+          <Interactive3DCard title="Total Saved" amount={`LKR ${stats.savings.toLocaleString()}`} subtitle="Across all savings goals" colorClass="bg-emerald-500" icon={PiggyBank} />
+          <Interactive3DCard title="Total Spent" amount={`LKR ${stats.expenses.toLocaleString()}`} subtitle="Recorded outgoings" colorClass="bg-rose-500" icon={Wallet} />
           <Interactive3DCard title="Active Splits" amount={stats.splits} subtitle="Pending split bills" colorClass="bg-purple-500" icon={Receipt} />
         </div>
 
@@ -258,7 +249,7 @@ export default function FinanceHub() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="name" stroke="#525252" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#525252" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+                    <YAxis stroke="#525252" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `LKR ${val}`} />
                     <Tooltip cursor={{ fill: '#ffffff05' }} contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: '12px' }} itemStyle={{ color: '#fff', fontWeight: 'bold' }} />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                       {barData.map((entry, index) => <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />)}

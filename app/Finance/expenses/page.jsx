@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, TrendingDown, Plus, Calendar, 
-  CheckCircle2, Clock, X, CreditCard, Bell, AlertTriangle, Search
+  CheckCircle2, Clock, X, Bell, AlertTriangle, Search,
+  Edit2, Trash2 // Added new icons here!
 } from 'lucide-react';
 import ExpenseRain from '../../../components/ExpenseRain';
 
@@ -13,13 +14,14 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // NEW: Search & Filter State
+  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'pending', 'completed'
 
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null); // Tracks if we are editing!
   const [formData, setFormData] = useState({ 
     title: '', amount: '', category: 'Housing', status: 'pending', dueDate: '' 
   });
@@ -51,7 +53,14 @@ export default function ExpensesPage() {
 
   useEffect(() => { fetchExpenses(); }, []);
 
-  // 2. Add New Expense with Due Date
+  // 2. Close Modal & Reset Form
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setFormData({ title: '', amount: '', category: 'Housing', status: 'pending', dueDate: '' });
+  };
+
+  // 3. Add or Update Expense
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -60,27 +69,60 @@ export default function ExpensesPage() {
       ? `pending|${formData.dueDate}` 
       : formData.status;
 
+    const payload = {
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      type: 'expense',
+      category: formData.category,
+      status: statusToSave 
+    };
+
     try {
-      await fetch('http://localhost:5000/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          amount: parseFloat(formData.amount),
-          type: 'expense',
-          category: formData.category,
-          status: statusToSave 
-        }),
-      });
+      if (editingId) {
+        // UPDATE Existing
+        await fetch(`http://localhost:5000/api/transactions/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // CREATE New
+        await fetch('http://localhost:5000/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
 
       await fetchExpenses();
-      setIsModalOpen(false);
-      setFormData({ title: '', amount: '', category: 'Housing', status: 'pending', dueDate: '' });
+      handleCloseModal();
     } catch (error) {
       console.error("Error saving data:", error);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // 4. Edit Action
+  const handleEdit = (expense) => {
+    setEditingId(expense.id);
+    setFormData({
+      title: expense.title,
+      amount: expense.amount,
+      category: expense.category || 'Housing',
+      status: expense.status || 'pending',
+      dueDate: expense.dueDate || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  // 5. Delete Action
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this bill permanently?")) return;
+    try {
+      await fetch(`http://localhost:5000/api/transactions/${id}`, { method: 'DELETE' });
+      fetchExpenses();
+    } catch (err) { console.error(err); }
   };
 
   // --- Calculations ---
@@ -163,11 +205,11 @@ export default function ExpensesPage() {
           <div className="flex justify-between items-end mb-4">
             <div>
               <p className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-1">Total Liability</p>
-              <p className="text-3xl font-bold">${totalExpenses.toFixed(2)}</p>
+              <p className="text-3xl font-bold">LKR {totalExpenses.toLocaleString()}</p>
             </div>
             <div className="text-right">
               <p className="text-emerald-500 text-sm font-bold uppercase tracking-wider mb-1">Cleared</p>
-              <p className="text-xl font-bold text-white">${paidAmount.toFixed(2)}</p>
+              <p className="text-xl font-bold text-white">LKR {paidAmount.toLocaleString()}</p>
             </div>
           </div>
           <div className="h-3 w-full bg-black rounded-full overflow-hidden border border-white/5 relative">
@@ -209,7 +251,7 @@ export default function ExpensesPage() {
             </div>
           ) : (
             <AnimatePresence>
-              {filteredExpenses.map((item, index) => {
+              {filteredExpenses.map((item) => {
                 
                 // Urgency Logic Math
                 let daysLeftText = "";
@@ -273,10 +315,21 @@ export default function ExpensesPage() {
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-rose-400">-${item.amount.toFixed(2)}</p>
+                    <div className="text-right flex flex-col items-end">
+                      <p className="text-2xl font-bold text-rose-400">-LKR {item.amount.toLocaleString()}</p>
+                      
                       <div className={`flex items-center justify-end gap-1 text-xs font-bold mt-1 uppercase tracking-wider ${statusTextClass}`}>
                         {item.status === 'pending' ? <><Clock size={12}/> {item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'Pending'}</> : <><CheckCircle2 size={12}/> Paid</>}
+                      </div>
+
+                      {/* NEW: Edit & Delete Hover Actions */}
+                      <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button onClick={() => handleEdit(item)} className="p-2 bg-white/5 border border-white/5 hover:bg-amber-500/20 hover:border-amber-500/30 text-amber-500 rounded-xl transition-all shadow-sm">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} className="p-2 bg-white/5 border border-white/5 hover:bg-rose-500/20 hover:border-rose-500/30 text-rose-500 rounded-xl transition-all shadow-sm">
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   </motion.div>
@@ -287,19 +340,20 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {/* --- ADD EXPENSE MODAL UI --- */}
+      {/* --- ADD / EDIT EXPENSE MODAL UI --- */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-md bg-neutral-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors">
+              <button onClick={handleCloseModal} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
               </button>
 
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
-                <TrendingDown className="text-rose-500" /> New Expense
+                <TrendingDown className="text-rose-500" /> 
+                {editingId ? 'Edit Bill' : 'New Expense'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -310,10 +364,10 @@ export default function ExpensesPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">Amount ($)</label>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Amount</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                      <input type="number" required min="1" step="0.01" placeholder="0.00" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white focus:outline-none focus:border-rose-500 transition-colors" />
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">LKR</span>
+                      <input type="number" required min="1" step="0.01" placeholder="0.00" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-rose-500 transition-colors" />
                     </div>
                   </div>
                   
@@ -352,7 +406,7 @@ export default function ExpensesPage() {
                 </div>
 
                 <button type="submit" disabled={isSubmitting} className="w-full bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold py-4 rounded-xl mt-4 transition-colors flex items-center justify-center gap-2">
-                  {isSubmitting ? 'Saving...' : 'Save Expense'}
+                  {isSubmitting ? 'Saving...' : (editingId ? 'Update Expense' : 'Save Expense')}
                 </button>
               </form>
             </motion.div>

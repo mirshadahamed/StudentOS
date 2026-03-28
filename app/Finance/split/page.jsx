@@ -11,7 +11,7 @@ export default function SplitBillPage() {
   const [totalAmount, setTotalAmount] = useState('');
   const [payer, setPayer] = useState('Me');
   
-  // NEW: Toggle between Equal and Custom splits
+  // Toggle between Equal and Custom splits
   const [splitMethod, setSplitMethod] = useState('equal'); // 'equal' | 'custom'
   
   const [friends, setFriends] = useState([{ name: '', email: '', amount: '' }]);
@@ -81,26 +81,27 @@ export default function SplitBillPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white p-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#050505] text-white p-8 font-sans relative overflow-hidden">
       
       {/* Premium Background Glow */}
-      <div className="absolute top-0 right-[-10%] w-[600px] h-[600px] bg-rose-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-rose-600/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-6xl mx-auto relative z-10 mt-4">
         
-        <header className="mb-10">
-          <Link href="/finance" className="inline-flex items-center gap-2 text-rose-400 hover:text-rose-300 transition-colors mb-6 font-bold">
-            <ArrowLeft size={20} /> Back to Hub
+        <header className="mb-12">
+          <Link href="/finance" className="inline-flex items-center gap-2 text-rose-400 hover:text-rose-300 transition-colors mb-6 font-bold text-sm tracking-wider uppercase">
+            <ArrowLeft size={16} /> Back to Hub
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-rose-500/20 rounded-2xl border border-rose-500/30">
-              <SplitSquareHorizontal className="text-rose-500" size={40} />
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-rose-500/10 rounded-[2rem] border border-rose-500/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+              <SplitSquareHorizontal className="text-rose-400 drop-shadow-[0_0_15px_rgba(225,29,72,0.6)]" size={42} />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-orange-400">
+              <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-rose-400 via-red-400 to-orange-400 tracking-tight">
                 Advanced Splitter
               </h1>
-              <p className="text-gray-400 mt-1">Divide equally or customize exact amounts.</p>
+              <p className="text-neutral-400 mt-2 text-lg">Divide bills equally or customize exact LKR amounts for friends.</p>
             </div>
           </div>
         </header>
@@ -108,47 +109,55 @@ export default function SplitBillPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           
           {/* --- LEFT: THE FORM --- */}
-          <div className="lg:col-span-3 bg-neutral-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-            <form onSubmit={handleSplit} className="space-y-6">
+          <div className="lg:col-span-3 bg-neutral-900/40 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-[50px] -mr-10 -mt-10" />
+            
+            <form onSubmit={handleSplit} className="space-y-6 relative z-10">
               
               {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">What was it for?</label>
-                  <input required type="text" placeholder="e.g. Uber to Airport" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 focus:border-rose-500 outline-none transition-colors" />
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">What was it for?</label>
+                  <input required type="text" placeholder="e.g. PickMe to Galle Face" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-inner text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">Total Amount ($)</label>
-                  <input required type="number" step="0.01" placeholder="0.00" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 focus:border-rose-500 outline-none transition-colors text-rose-400 font-bold" />
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Total Bill Amount</label>
+                  <div className="relative group/input">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-xs transition-colors group-focus-within/input:text-rose-400">LKR</span>
+                    <input required type="number" step="1" min="1" placeholder="0" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all text-rose-400 font-black text-xl shadow-inner" />
+                  </div>
                 </div>
               </div>
 
               {/* Split Method Toggle */}
-              <div className="bg-black/40 p-1.5 rounded-xl flex items-center border border-white/5">
-                <button type="button" onClick={() => setSplitMethod('equal')} className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${splitMethod === 'equal' ? 'bg-rose-500 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+              <div className="bg-black/40 p-1.5 rounded-2xl flex items-center border border-white/5 shadow-inner">
+                <button type="button" onClick={() => setSplitMethod('equal')} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'equal' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
                   Split Equally
                 </button>
-                <button type="button" onClick={() => setSplitMethod('custom')} className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${splitMethod === 'custom' ? 'bg-rose-500 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+                <button type="button" onClick={() => setSplitMethod('custom')} className={`flex-1 py-3.5 rounded-xl font-bold text-sm transition-all ${splitMethod === 'custom' ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-neutral-500 hover:text-white'}`}>
                   Custom Amounts
                 </button>
               </div>
 
               {/* Friends List */}
-              <div className="space-y-4">
-                <label className="block text-sm font-bold text-gray-400">Who owes you?</label>
+              <div className="space-y-4 pt-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400">Who owes you?</label>
                 <AnimatePresence>
                   {friends.map((friend, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="flex gap-3 items-center bg-black/20 p-2 rounded-2xl border border-white/5">
-                      <input type="text" placeholder="Name" required value={friend.name} onChange={e => updateFriend(index, 'name', e.target.value)} className="w-1/3 bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-rose-500 outline-none text-sm" />
-                      <input type="email" placeholder="Email (for auto-alert)" value={friend.email} onChange={e => updateFriend(index, 'email', e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-rose-500 outline-none text-sm" />
+                    <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="flex gap-3 items-center bg-black/20 p-2 rounded-2xl border border-white/5 shadow-sm">
+                      <input type="text" placeholder="Name" required value={friend.name} onChange={e => updateFriend(index, 'name', e.target.value)} className="w-1/3 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 focus:border-rose-500 focus:outline-none text-sm text-white transition-colors" />
+                      <input type="email" placeholder="Email (for auto-alert)" value={friend.email} onChange={e => updateFriend(index, 'email', e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 focus:border-rose-500 focus:outline-none text-sm text-white transition-colors" />
                       
                       {/* Show custom amount input ONLY if custom mode is selected */}
                       {splitMethod === 'custom' && (
-                        <input type="number" step="0.01" placeholder="$ Owes" required value={friend.amount} onChange={e => updateFriend(index, 'amount', e.target.value)} className="w-24 bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold rounded-xl px-3 py-3 focus:border-rose-500 outline-none text-sm text-center" />
+                        <div className="relative w-32">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500/50 font-bold text-xs">LKR</span>
+                          <input type="number" step="1" placeholder="0" required value={friend.amount} onChange={e => updateFriend(index, 'amount', e.target.value)} className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold rounded-xl pl-10 pr-3 py-3.5 focus:border-rose-500 outline-none text-sm transition-colors" />
+                        </div>
                       )}
 
                       {friends.length > 1 && (
-                        <button type="button" onClick={() => removeFriend(index)} className="p-3 text-gray-500 hover:text-red-400 transition-colors">
+                        <button type="button" onClick={() => removeFriend(index)} className="p-3 text-neutral-500 hover:text-red-400 transition-colors bg-white/5 rounded-xl ml-1">
                           <Trash2 size={18} />
                         </button>
                       )}
@@ -156,75 +165,84 @@ export default function SplitBillPage() {
                   ))}
                 </AnimatePresence>
                 
-                <button type="button" onClick={addFriend} className="text-rose-400 text-sm font-bold flex items-center gap-1 mt-2 hover:text-rose-300 bg-rose-500/10 px-4 py-2 rounded-lg transition-colors">
+                <button type="button" onClick={addFriend} className="text-rose-400 text-sm font-bold flex items-center gap-2 mt-3 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-5 py-3 rounded-xl transition-all border border-rose-500/20">
                   <Plus size={16} /> Add Person
                 </button>
               </div>
 
               {/* Summary Footer */}
-              <div className="pt-6 mt-6 border-t border-white/10">
+              <div className="pt-8 mt-4 border-t border-white/5">
                 {splitMethod === 'equal' ? (
-                  <div className="flex justify-between items-center text-gray-300">
-                    <span>Each person pays (including you):</span>
-                    <span className="text-3xl font-bold text-rose-400">
-                      ${totalAmount ? (totalAmount / (validFriends.length + 1)).toFixed(2) : '0.00'}
+                  <div className="flex justify-between items-center text-neutral-300 bg-black/40 p-5 rounded-2xl border border-white/5">
+                    <span className="text-sm font-bold">Each person pays <span className="text-neutral-500 font-medium">(including you)</span>:</span>
+                    <span className="text-3xl font-black text-rose-400">
+                      LKR {totalAmount ? (totalAmount / (validFriends.length + 1)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}
                     </span>
                   </div>
                 ) : (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Total assigned to friends:</span>
-                    <span className={`text-2xl font-bold ${isOverBudget ? 'text-red-500' : 'text-emerald-400'}`}>
-                      ${totalCustomAssigned.toFixed(2)} / ${totalAmount || '0.00'}
+                  <div className="flex justify-between items-center bg-black/40 p-5 rounded-2xl border border-white/5">
+                    <span className="text-neutral-300 text-sm font-bold">Assigned to friends:</span>
+                    <span className={`text-xl font-black tracking-wider ${isOverBudget ? 'text-red-500' : 'text-emerald-400'}`}>
+                      LKR {totalCustomAssigned.toLocaleString()} <span className="text-neutral-600 text-lg">/ LKR {Number(totalAmount || 0).toLocaleString()}</span>
                     </span>
                   </div>
                 )}
                 
-                {isOverBudget && <p className="text-red-400 text-sm mt-2 flex items-center gap-1"><AlertCircle size={14}/> Friends cannot owe more than the total bill!</p>}
+                {isOverBudget && <p className="text-red-400 text-sm mt-3 flex items-center justify-center gap-2 font-bold bg-red-500/10 p-3 rounded-xl"><AlertCircle size={16}/> Friends cannot owe more than the total bill!</p>}
 
-                <button type="submit" disabled={isSubmitting || isOverBudget} className="w-full mt-6 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:hover:bg-rose-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(225,29,72,0.3)]">
-                  {isSubmitting ? 'Processing...' : <><Send size={20} /> Save & Send Alerts</>}
+                <button type="submit" disabled={isSubmitting || isOverBudget} className="w-full mt-6 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 disabled:opacity-50 disabled:hover:bg-rose-600 text-white font-black text-lg py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] active:scale-95">
+                  {isSubmitting ? 'Processing Network...' : <><Send size={22} /> Save & Send Alerts</>}
                 </button>
               </div>
             </form>
           </div>
 
           {/* --- RIGHT: HISTORY PANEL --- */}
-          <div className="lg:col-span-2 bg-neutral-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 h-fit max-h-[800px] overflow-y-auto custom-scrollbar">
-             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
-                <Receipt className="text-rose-400" /> Recent Splits
+          <div className="lg:col-span-2 bg-neutral-900/40 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 h-fit max-h-[800px] overflow-y-auto custom-scrollbar shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-[50px] -mr-10 -mt-10" />
+             
+             <h2 className="text-xl font-bold mb-8 flex items-center gap-3 text-white relative z-10">
+                <Receipt className="text-rose-400" size={24} /> Recent Splits
              </h2>
-             {splits.length === 0 ? (
-               <div className="text-center py-10 bg-black/20 rounded-2xl border border-white/5">
-                 <p className="text-gray-500">No active splits.</p>
-               </div>
-             ) : (
-               <div className="space-y-4">
-                 {splits.map(split => (
-                   <div key={split.id} className="bg-black/40 border border-white/5 p-5 rounded-2xl hover:border-rose-500/30 transition-colors">
-                     <div className="flex justify-between items-start mb-3">
-                       <div>
-                         <p className="font-bold text-lg text-white">{split.title}</p>
-                         <p className="text-xs text-gray-500 mt-1">{new Date(split.date).toLocaleDateString()}</p>
-                       </div>
-                       <div className="text-right">
-                         <p className="font-bold text-rose-400 text-xl">${split.total_amount}</p>
-                       </div>
-                     </div>
-                     <div className="pt-3 border-t border-white/10">
-                       <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider font-bold">People Owe You:</p>
-                       <div className="space-y-2">
-                         {split.members.map((m, i) => (
-                           <div key={i} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg">
-                              <span className="text-sm text-gray-300 flex items-center gap-2"><Users size={12}/> {m.name}</span>
-                              <span className="text-sm font-bold text-rose-300">${m.amount}</span>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
+             
+             <div className="relative z-10">
+               {splits.length === 0 ? (
+                 <div className="text-center py-12 bg-black/20 rounded-2xl border border-white/5 border-dashed">
+                   <div className="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+                     <Receipt size={24} className="text-neutral-600" />
                    </div>
-                 ))}
-               </div>
-             )}
+                   <p className="text-neutral-500 font-bold">No active splits found.</p>
+                 </div>
+               ) : (
+                 <div className="space-y-4">
+                   {splits.map(split => (
+                     <div key={split.id} className="bg-black/40 border border-white/5 p-6 rounded-2xl hover:border-rose-500/30 transition-colors shadow-sm">
+                       <div className="flex justify-between items-start mb-4">
+                         <div>
+                           <p className="font-bold text-lg text-white">{split.title}</p>
+                           <p className="text-xs text-neutral-500 mt-1 font-medium">{new Date(split.date).toLocaleDateString()}</p>
+                         </div>
+                         <div className="text-right">
+                           <p className="font-black text-rose-400 text-xl">LKR {Number(split.total_amount).toLocaleString()}</p>
+                         </div>
+                       </div>
+                       
+                       <div className="pt-4 border-t border-white/5">
+                         <p className="text-xs text-neutral-500 mb-3 uppercase tracking-widest font-bold">People Owe You</p>
+                         <div className="space-y-2">
+                           {split.members.map((m, i) => (
+                             <div key={i} className="flex justify-between items-center bg-white/5 px-4 py-3 rounded-xl border border-white/5">
+                                <span className="text-sm text-neutral-300 flex items-center gap-2 font-medium"><Users size={14} className="text-neutral-500"/> {m.name}</span>
+                                <span className="text-sm font-bold text-rose-300">LKR {Number(m.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </div>
           </div>
 
         </div>
