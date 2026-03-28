@@ -47,7 +47,8 @@ import {
   BookOpen,
   Dumbbell,
   Wind,
-  Moon as MoonIcon
+  Moon as MoonIcon,
+  AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
 
@@ -113,6 +114,9 @@ const moodFactors = [
   { id: "family", label: "Family", icon: Users, color: "text-emerald-500", bg: "bg-emerald-50", border: "border-emerald-200" }
 ];
 
+// Banned words for content filtering
+const bannedWords = ["kill", "suicide", "die", "death", "kill myself", "hurt myself", "self harm", "end it"];
+
 export default function Dashboard() {
   // State for mood logging
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -126,6 +130,8 @@ export default function Dashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showSentiment, setShowSentiment] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showError, setShowError] = useState(false);
   
   // User state
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -136,6 +142,7 @@ export default function Dashboard() {
   const selectedMoodRef = useRef<string | null>(null);
   const moodNoteRef = useRef("");
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     selectedMoodRef.current = selectedMood;
@@ -144,6 +151,67 @@ export default function Dashboard() {
   useEffect(() => {
     moodNoteRef.current = moodNote;
   }, [moodNote]);
+
+  // Show error message with auto-hide
+  const showErrorMessage = (message: string) => {
+    setErrorMessage(message);
+    setShowError(true);
+    if (errorTimeout.current) clearTimeout(errorTimeout.current);
+    errorTimeout.current = setTimeout(() => {
+      setShowError(false);
+      setTimeout(() => setErrorMessage(null), 300);
+    }, 4000);
+  };
+
+  // Validate input text
+  const validateText = (text: string): boolean => {
+    const trimmedText = text.trim();
+    
+    // Check if empty
+    if (trimmedText.length === 0) {
+      showErrorMessage("Please write something before saving.");
+      return false;
+    }
+    
+    // Check minimum length (5 characters minimum for meaningful input)
+    if (trimmedText.length < 5) {
+      showErrorMessage("Please write a more meaningful message (at least 5 characters).");
+      return false;
+    }
+    
+    // Check maximum length (500 characters max)
+    if (trimmedText.length > 500) {
+      showErrorMessage("Message is too long. Maximum 500 characters allowed.");
+      return false;
+    }
+    
+    // Check for banned words
+    const lowerText = trimmedText.toLowerCase();
+    const foundBannedWord = bannedWords.some(word => lowerText.includes(word));
+    
+    if (foundBannedWord) {
+      showErrorMessage(
+        "⚠️ Sensitive content detected. Please remember that support is available. " +
+        "If you're struggling, please reach out to a trusted friend, family member, or mental health professional."
+      );
+      return false;
+    }
+    
+    // Check for repetitive/meaningless patterns (like "ok", "hmm", "a", etc.)
+    const meaninglessPatterns = [
+      /^[a-z]{1,3}$/i, // Single letters or very short words
+      /^(ok|okay|hmm|hmm|meh|meh|idk|idk|k)$/i,
+      /^(.)\1{5,}$/, // Repeated characters like "aaaaaa"
+      /^[\s\-_~]*$/ // Only special characters
+    ];
+    
+    if (meaninglessPatterns.some(pattern => pattern.test(trimmedText))) {
+      showErrorMessage("Please write a more meaningful message. Your thoughts matter!");
+      return false;
+    }
+    
+    return true;
+  };
 
   // Fetch user data from database
   useEffect(() => {
@@ -225,13 +293,21 @@ export default function Dashboard() {
     const currentNote = moodNoteRef.current.trim();
 
     // Check if either a mood is selected OR there's text to analyze
-    if (!currentMood && !currentNote) return;
+    if (!currentMood && !currentNote) {
+      showErrorMessage("Please select a mood or write about your day.");
+      return;
+    }
+    
+    // Validate text if present
+    if (currentNote && !validateText(currentNote)) {
+      return; // Validation failed, error already shown
+    }
 
     try {
       const userId = localStorage.getItem("student_user_id");
 
       if (!userId) {
-        alert("Please login first to save mood and send risk notifications.");
+        showErrorMessage("Please login first to save mood and send risk notifications.");
         return;
       }
 
@@ -340,7 +416,7 @@ export default function Dashboard() {
 
     } catch (error) {
       console.error("Error saving mood:", error);
-      alert("❌ Failed to save mood. Please try again.");
+      showErrorMessage("❌ Failed to save mood. Please try again.");
     }
   };
 
@@ -385,19 +461,47 @@ export default function Dashboard() {
     return null;
   };
 
-  // Cleanup debounce on unmount
+  // Cleanup debounce and error timeout on unmount
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
+      }
+      if (errorTimeout.current) {
+        clearTimeout(errorTimeout.current);
       }
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      {/* Error Toast Notification */}
+      <AnimatePresence>
+        {showError && errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -100, x: "-50%" }}
+            animate={{ opacity: 1, y: 20, x: "-50%" }}
+            exit={{ opacity: 0, y: -100, x: "-50%" }}
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 shadow-lg max-w-md">
+              <div className="p-1 bg-red-100 rounded-full">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <p className="text-sm text-red-700 flex-1">{errorMessage}</p>
+              <button
+                onClick={() => setShowError(false)}
+                className="p-1 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4 text-red-600" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-200">
+      <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -467,6 +571,19 @@ export default function Dashboard() {
             {getFormattedDate()}
           </p>
         </motion.div>
+
+        {/* Character Counter */}
+        {moodNote.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-end mb-2"
+          >
+            <span className={`text-xs ${moodNote.length > 500 ? 'text-red-500' : 'text-gray-400'}`}>
+              {moodNote.length}/500 characters
+            </span>
+          </motion.div>
+        )}
 
         {/* Main Card - Quick Check-in */}
         <motion.div
@@ -609,9 +726,10 @@ export default function Dashboard() {
                       }
                     }, 500);
                   }}
-                  placeholder="How was your day? What's on your mind?..."
+                  placeholder="How was your day? What's on your mind?... (minimum 5 characters)"
                   className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder:text-gray-400 bg-white"
                   rows={4}
+                  maxLength={500}
                 />
                 
                 {/* Sentiment Analysis Indicator */}

@@ -21,7 +21,7 @@ export async function POST(req) {
   if (sadCount >= 4) {
     return Response.json({
       danger: true,
-      message: "User has been sad multiple times recently."
+      message: "⚠️ The user might need support due to consistent low mood entries."
     });
   }
 

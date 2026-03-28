@@ -119,7 +119,7 @@ const activitiesData = [
     category: "physical",
     moodTags: ["energetic", "stressed", "angry"],
     animation: "pushup",
-    image: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "https://unsplash.com/photos/a-man-doing-push-ups-with-a-barbell-HjZLJ3BN9MU",
     thumbnail: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-red-400 to-rose-500",
     bgColor: "bg-red-50",
