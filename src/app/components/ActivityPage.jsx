@@ -37,6 +37,7 @@ import {
   TrendingUp,
   RefreshCw
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Enhanced activities data with images and rich content
 const activitiesData = [
@@ -51,9 +52,8 @@ const activitiesData = [
     animation: "breathing",
     image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-blue-400 to-cyan-500",
-    bgColor: "bg-blue-50",
-    // icon: "🌬️",
+    color: "from-[#38BDF8] to-[#0EA5E9]",
+    bgColor: "bg-[#38BDF8]/10",
     benefits: ["Reduces stress", "Lowers heart rate", "Improves focus", "Calms anxiety"],
     instructions: [
       "Find a comfortable seated position",
@@ -62,9 +62,9 @@ const activitiesData = [
       "Repeat for 5 minutes"
     ],
     phases: [
-      { name: "Inhale", duration: 4, color: "bg-green-500" },
-      { name: "Hold", duration: 4, color: "bg-yellow-500" },
-      { name: "Exhale", duration: 6, color: "bg-blue-500" }
+      { name: "Inhale", duration: 4, color: "bg-[#4ADE80]" },
+      { name: "Hold", duration: 4, color: "bg-[#F97316]" },
+      { name: "Exhale", duration: 6, color: "bg-[#38BDF8]" }
     ],
     tips: [
       "Try to breathe from your diaphragm, not your chest",
@@ -83,9 +83,8 @@ const activitiesData = [
     animation: "writing",
     image: "https://images.unsplash.com/photo-1516383740770-fbcc5ccbece0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1516383740770-fbcc5ccbece0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-amber-400 to-orange-500",
-    bgColor: "bg-amber-50",
-    // icon: "📝",
+    color: "from-[#F97316] to-[#EA580C]",
+    bgColor: "bg-[#F97316]/10",
     benefits: ["Boosts mood", "Increases optimism", "Improves sleep", "Builds resilience"],
     prompts: [
       "What made you smile today?",
@@ -105,9 +104,8 @@ const activitiesData = [
     animation: "stretching",
     image: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-green-400 to-emerald-500",
-    bgColor: "bg-green-50",
-    // icon: "🧘",
+    color: "from-[#4ADE80] to-[#22C55E]",
+    bgColor: "bg-[#4ADE80]/10",
     benefits: ["Reduces muscle tension", "Improves posture", "Boosts energy", "Increases flexibility"]
   },
   {
@@ -119,11 +117,10 @@ const activitiesData = [
     category: "physical",
     moodTags: ["energetic", "stressed", "angry"],
     animation: "pushup",
-    image: "https://unsplash.com/photos/a-man-doing-push-ups-with-a-barbell-HjZLJ3BN9MU",
+    image: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-red-400 to-rose-500",
-    bgColor: "bg-red-50",
-    // icon: "💪",
+    color: "from-[#F87171] to-[#EF4444]",
+    bgColor: "bg-[#F87171]/10",
     benefits: ["Builds upper body strength", "Releases tension", "Boosts confidence", "Improves posture"],
     sets: [
       { count: 5, rest: 15 },
@@ -149,9 +146,8 @@ const activitiesData = [
     animation: "calling",
     image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-purple-400 to-indigo-500",
-    bgColor: "bg-purple-50",
-    // icon: "📞",
+    color: "from-[#A78BFA] to-[#8B5CF6]",
+    bgColor: "bg-[#A78BFA]/10",
     benefits: ["Reduces loneliness", "Strengthens relationships", "Provides support", "Boosts mood"],
     conversationStarters: [
       "What's been the highlight of your week?",
@@ -171,9 +167,8 @@ const activitiesData = [
     animation: "drawing",
     image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-pink-400 to-rose-500",
-    bgColor: "bg-pink-50",
-    // icon: "🎨",
+    color: "from-[#F97316] to-[#EA580C]",
+    bgColor: "bg-[#F97316]/10",
     benefits: ["Reduces stress", "Processes emotions", "Increases mindfulness", "Boosts creativity"],
     ideas: [
       "Draw your current emotion as an abstract shape",
@@ -193,9 +188,8 @@ const activitiesData = [
     animation: "walking",
     image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-green-400 to-teal-500",
-    bgColor: "bg-green-50",
-    // icon: "🌳",
+    color: "from-[#4ADE80] to-[#22C55E]",
+    bgColor: "bg-[#4ADE80]/10",
     benefits: ["Reduces stress", "Improves mood", "Boosts vitamin D", "Increases creativity"]
   },
   {
@@ -209,9 +203,8 @@ const activitiesData = [
     animation: "relaxation",
     image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-indigo-400 to-blue-500",
-    bgColor: "bg-indigo-50",
-    // icon: "😌",
+    color: "from-[#38BDF8] to-[#0EA5E9]",
+    bgColor: "bg-[#38BDF8]/10",
     benefits: ["Reduces physical tension", "Lowers anxiety", "Improves sleep", "Increases body awareness"]
   },
   {
@@ -225,9 +218,8 @@ const activitiesData = [
     animation: "music",
     image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-violet-400 to-purple-500",
-    bgColor: "bg-violet-50",
-    // icon: "🎵",
+    color: "from-[#A78BFA] to-[#8B5CF6]",
+    bgColor: "bg-[#A78BFA]/10",
     benefits: ["Lowers cortisol", "Reduces anxiety", "Improves focus", "Enhances mood"]
   },
   {
@@ -241,9 +233,8 @@ const activitiesData = [
     animation: "jumping",
     image: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     thumbnail: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    color: "from-orange-400 to-red-500",
-    bgColor: "bg-orange-50",
-    // icon: "🏃",
+    color: "from-[#F97316] to-[#EA580C]",
+    bgColor: "bg-[#F97316]/10",
     benefits: ["Boosts energy", "Improves circulation", "Releases endorphins", "Clears mind"],
     sets: [
       { count: 20, rest: 10 },
@@ -253,16 +244,16 @@ const activitiesData = [
   }
 ];
 
-// Mood definitions with colors and images
+// Mood definitions with colors and images (soft tones)
 const moods = [
-  { id: "anxious", name: "Anxious", icon: Cloud, color: "text-yellow-600", bgColor: "bg-yellow-100", lightBg: "bg-yellow-50", gradient: "from-yellow-400 to-amber-500", image: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "stressed", name: "Stressed", icon: Zap, color: "text-red-600", bgColor: "bg-red-100", lightBg: "bg-red-50", gradient: "from-red-400 to-rose-500", image: "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "sad", name: "Sad", icon: Frown, color: "text-blue-600", bgColor: "bg-blue-100", lightBg: "bg-blue-50", gradient: "from-blue-400 to-cyan-500", image: "https://images.unsplash.com/photo-1486633632054-d732792b5cb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "tired", name: "Tired", icon: Moon, color: "text-purple-600", bgColor: "bg-purple-100", lightBg: "bg-purple-50", gradient: "from-purple-400 to-indigo-500", image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "lonely", name: "Lonely", icon: Cloud, color: "text-indigo-600", bgColor: "bg-indigo-100", lightBg: "bg-indigo-50", gradient: "from-indigo-400 to-blue-500", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "calm", name: "Calm", icon: Sun, color: "text-orange-600", bgColor: "bg-orange-100", lightBg: "bg-orange-50", gradient: "from-orange-400 to-amber-500", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "happy", name: "Happy", icon: Smile, color: "text-green-600", bgColor: "bg-green-100", lightBg: "bg-green-50", gradient: "from-green-400 to-emerald-500", image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "overwhelmed", name: "Overwhelmed", icon: CloudRain, color: "text-gray-600", bgColor: "bg-gray-100", lightBg: "bg-gray-50", gradient: "from-gray-400 to-slate-500", image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
+  { id: "anxious", name: "Anxious", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", image: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "stressed", name: "Stressed", icon: Zap, color: "text-[#F87171]", bgColor: "bg-[#F87171]/20", lightBg: "bg-[#F87171]/10", gradient: "from-[#F87171] to-[#EF4444]", image: "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "sad", name: "Sad", icon: Frown, color: "text-[#60A5FA]", bgColor: "bg-[#60A5FA]/20", lightBg: "bg-[#60A5FA]/10", gradient: "from-[#60A5FA] to-[#3B82F6]", image: "https://images.unsplash.com/photo-1486633632054-d732792b5cb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "tired", name: "Tired", icon: Moon, color: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/20", lightBg: "bg-[#A78BFA]/10", gradient: "from-[#A78BFA] to-[#8B5CF6]", image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "lonely", name: "Lonely", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "calm", name: "Calm", icon: Sun, color: "text-[#34D399]", bgColor: "bg-[#34D399]/20", lightBg: "bg-[#34D399]/10", gradient: "from-[#34D399] to-[#10B981]", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "happy", name: "Happy", icon: Smile, color: "text-[#4ADE80]", bgColor: "bg-[#4ADE80]/20", lightBg: "bg-[#4ADE80]/10", gradient: "from-[#4ADE80] to-[#22C55E]", image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "overwhelmed", name: "Overwhelmed", icon: CloudRain, color: "text-[#6B7280]", bgColor: "bg-[#6B7280]/20", lightBg: "bg-[#6B7280]/10", gradient: "from-[#6B7280] to-[#4B5563]", image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
 ];
 
 // Categories with icons
@@ -328,7 +319,7 @@ const BreathingAnimation = ({ isActive, isPaused, phase }) => {
             : 1
         }}
         transition={{ duration: phase === "inhale" ? 4 : phase === "exhale" ? 6 : 4, ease: "easeInOut" }}
-        className="absolute inset-0 bg-purple-500/20 rounded-2xl flex items-center justify-center"
+        className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
       >
         <div className="text-white font-bold text-2xl bg-black/50 px-4 py-2 rounded-full">
           {phase === "inhale" ? "🌬️ Inhale" : phase === "exhale" ? "😮‍💨 Exhale" : "Hold"}
@@ -358,14 +349,14 @@ const PushupAnimation = ({ isActive, isPaused, currentSet, currentCount, totalSe
           repeat: isActive && !isPaused ? Infinity : 0,
           ease: "easeInOut"
         }}
-        className="absolute inset-0 bg-purple-500/20 rounded-2xl flex items-center justify-center"
+        className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
       >
         <div className="text-white font-bold text-xl bg-black/50 px-4 py-2 rounded-full">
           {currentCount} reps
         </div>
       </motion.div>
       <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-[#9CA3AF]">
           Set {currentSet + 1} of {totalSets}
         </div>
       </div>
@@ -374,6 +365,7 @@ const PushupAnimation = ({ isActive, isPaused, currentSet, currentCount, totalSe
 };
 
 export default function ActivitiesPage() {
+  const router = useRouter();
   const [selectedMood, setSelectedMood] = useState("");
   const [activities, setActivities] = useState(activitiesData);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -550,7 +542,7 @@ export default function ActivitiesPage() {
                 repeat: isActive && !isPaused ? Infinity : 0,
                 ease: "linear"
               }}
-              className="absolute inset-0 bg-purple-500/20 rounded-2xl flex items-center justify-center"
+              className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
             >
               <Timer className="w-16 h-16 text-white" />
             </motion.div>
@@ -563,54 +555,36 @@ export default function ActivitiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Header - Invisible background */}
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-10"
-      >
+    <div className="min-h-screen bg-[#0F172A]">
+      {/* Header */}
+      <div className="bg-[#111827] border-b border-[#374151] sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Back button - Show when no activity is selected */}
-              {!selectedActivity && (
-                <Link href="/MoodLogin">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 hover:bg-gray-100 rounded-lg bg-white/50 backdrop-blur-sm"
-                  >
-                    <ArrowLeft className="w-5 h-5 text-gray-600" />
-                  </motion.button>
-                </Link>
-              )}
-              {selectedActivity && (
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={resetActivity}
-                  className="p-2 hover:bg-gray-100 rounded-lg bg-white/50 backdrop-blur-sm"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-600" />
-                </motion.button>
-              )}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3 sm:items-center">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => router.back()}
+                className="p-2 hover:bg-[#1F2937] rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-[#E5E7EB]" />
+              </motion.button>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg">
+                <div className="p-2 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-lg shadow-lg">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
-                <motion.h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-[#E5E7EB] sm:text-2xl">
                   {selectedActivity ? selectedActivity.title : "Wellness Activities"}
-                </motion.h1>
+                </h1>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 self-end sm:self-auto">
               {!selectedActivity && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-sm text-gray-600 rounded-lg hover:bg-white/70 transition-colors lg:hidden"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#1F2937] text-[#E5E7EB] rounded-lg hover:bg-[#374151] transition-colors lg:hidden"
                 >
                   <Filter className="w-5 h-5" />
                   <span>Filters</span>
@@ -619,7 +593,7 @@ export default function ActivitiesPage() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {selectedActivity ? (
@@ -627,10 +601,10 @@ export default function ActivitiesPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-xl overflow-hidden"
+            className="bg-[#1F2937] rounded-2xl shadow-xl overflow-hidden border border-[#374151]"
           >
             {/* Hero Image */}
-            <div className="relative h-64 lg:h-96">
+            <div className="relative h-72 sm:h-80 lg:h-96">
               <Image
                 src={selectedActivity.image}
                 alt={selectedActivity.title}
@@ -638,48 +612,47 @@ export default function ActivitiesPage() {
                 className="object-cover"
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${selectedActivity.color} opacity-60`} />
-              <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-4xl">{selectedActivity.icon}</span>
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white sm:p-8">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-sm">
                     {selectedActivity.category}
                   </span>
                 </div>
-                <h2 className="text-3xl lg:text-4xl font-bold mb-2">{selectedActivity.title}</h2>
-                <p className="text-lg text-white/90 max-w-2xl">{selectedActivity.longDescription}</p>
+                <h2 className="mb-2 text-2xl font-bold sm:text-3xl lg:text-4xl">{selectedActivity.title}</h2>
+                <p className="max-w-2xl text-sm text-white/90 sm:text-lg">{selectedActivity.longDescription}</p>
               </div>
             </div>
 
-            <div className="p-8">
+            <div className="p-4 sm:p-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className={`${selectedActivity.bgColor} rounded-xl p-8 flex items-center justify-center min-h-[400px]`}>
+                <div className={`${selectedActivity.bgColor} flex min-h-[280px] items-center justify-center rounded-xl p-4 sm:min-h-[400px] sm:p-8`}>
                   {renderActivityAnimation()}
                 </div>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <Clock className="w-5 h-5 mx-auto mb-2 text-purple-600" />
-                      <div className="text-sm text-gray-500">Duration</div>
-                      <div className="font-semibold">{selectedActivity.duration} min</div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
+                      <Clock className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
+                      <div className="text-sm text-[#9CA3AF]">Duration</div>
+                      <div className="font-semibold text-[#E5E7EB]">{selectedActivity.duration} min</div>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <Heart className="w-5 h-5 mx-auto mb-2 text-purple-600" />
-                      <div className="text-sm text-gray-500">Moods</div>
-                      <div className="font-semibold">{selectedActivity.moodTags.length}</div>
+                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
+                      <Heart className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
+                      <div className="text-sm text-[#9CA3AF]">Moods</div>
+                      <div className="font-semibold text-[#E5E7EB]">{selectedActivity.moodTags.length}</div>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <Award className="w-5 h-5 mx-auto mb-2 text-purple-600" />
-                      <div className="text-sm text-gray-500">Level</div>
-                      <div className="font-semibold">Beginner</div>
+                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
+                      <Award className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
+                      <div className="text-sm text-[#9CA3AF]">Level</div>
+                      <div className="font-semibold text-[#E5E7EB]">Beginner</div>
                     </div>
                   </div>
 
                   {selectedActivity.benefits && (
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-3">Benefits</h3>
+                      <h3 className="font-semibold text-[#E5E7EB] mb-3">Benefits</h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedActivity.benefits.map((benefit, i) => (
-                          <span key={i} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                          <span key={i} className="px-3 py-1 bg-[#22C55E]/10 text-[#4ADE80] rounded-full text-sm border border-[#22C55E]/20">
                             ✓ {benefit}
                           </span>
                         ))}
@@ -688,9 +661,9 @@ export default function ActivitiesPage() {
                   )}
 
                   {selectedActivity.animation === "breathing" && isActive && (
-                    <div className="p-4 bg-purple-50 rounded-xl">
+                    <div className="p-4 bg-[#22C55E]/10 rounded-xl border border-[#22C55E]/20">
                       <div className="text-center">
-                        <div className="text-lg font-semibold text-purple-700 mb-2 capitalize">
+                        <div className="text-lg font-semibold text-[#4ADE80] mb-2 capitalize">
                           {breathingPhase}
                         </div>
                         <div className="flex gap-2 justify-center">
@@ -700,7 +673,7 @@ export default function ActivitiesPage() {
                               className={`w-3 h-3 rounded-full ${
                                 phase.name.toLowerCase() === breathingPhase
                                   ? phase.color
-                                  : 'bg-gray-300'
+                                  : 'bg-[#374151]'
                               }`}
                             />
                           ))}
@@ -713,7 +686,7 @@ export default function ActivitiesPage() {
                     <div>
                       <button
                         onClick={() => setShowInstructions(!showInstructions)}
-                        className="text-purple-600 font-semibold flex items-center gap-2"
+                        className="text-[#22C55E] font-semibold flex items-center gap-2"
                       >
                         <ChevronDown className={`w-4 h-4 transition-transform ${showInstructions ? 'rotate-180' : ''}`} />
                         {showInstructions ? 'Hide' : 'Show'} Instructions
@@ -724,7 +697,7 @@ export default function ActivitiesPage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mt-4 space-y-2 list-disc list-inside text-gray-600"
+                            className="mt-4 space-y-2 list-disc list-inside text-[#9CA3AF]"
                           >
                             {selectedActivity.instructions.map((instruction, i) => (
                               <li key={i}>{instruction}</li>
@@ -736,20 +709,20 @@ export default function ActivitiesPage() {
                   )}
 
                   {selectedActivity.conversationStarters && (
-                    <div className="p-4 bg-purple-50 rounded-xl">
-                      <h3 className="font-semibold text-purple-900 mb-3">Conversation Starters</h3>
+                    <div className="p-4 bg-[#22C55E]/10 rounded-xl border border-[#22C55E]/20">
+                      <h3 className="font-semibold text-[#4ADE80] mb-3">Conversation Starters</h3>
                       <ul className="space-y-2">
                         {selectedActivity.conversationStarters.map((starter, i) => (
-                          <li key={i} className="text-purple-700 text-sm">💬 {starter}</li>
+                          <li key={i} className="text-[#9CA3AF] text-sm">💬 {starter}</li>
                         ))}
                       </ul>
                     </div>
                   )}
 
                   {selectedActivity.tips && (
-                    <div className="p-4 bg-blue-50 rounded-xl">
-                      <h3 className="font-semibold text-blue-900 mb-2">💡 Tips</h3>
-                      <ul className="space-y-1 text-sm text-blue-700">
+                    <div className="p-4 bg-[#38BDF8]/10 rounded-xl border border-[#38BDF8]/20">
+                      <h3 className="font-semibold text-[#38BDF8] mb-2">💡 Tips</h3>
+                      <ul className="space-y-1 text-sm text-[#9CA3AF]">
                         {selectedActivity.tips.map((tip, i) => (
                           <li key={i}>{tip}</li>
                         ))}
@@ -757,13 +730,13 @@ export default function ActivitiesPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex flex-col gap-4 pt-4 sm:flex-row">
                     {!isActive && !completed ? (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => startActivity(selectedActivity)}
-                        className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg"
+                        className="flex-1 py-3 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white rounded-xl font-semibold hover:shadow-lg"
                       >
                         Start Activity
                       </motion.button>
@@ -773,7 +746,7 @@ export default function ActivitiesPage() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={pauseActivity}
-                          className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700"
+                          className="flex-1 py-3 bg-[#22C55E] text-white rounded-xl font-semibold hover:bg-[#16A34A]"
                         >
                           {isPaused ? 'Resume' : 'Pause'}
                         </motion.button>
@@ -781,7 +754,7 @@ export default function ActivitiesPage() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={resetActivity}
-                          className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                          className="flex-1 py-3 bg-[#374151] text-[#E5E7EB] rounded-xl font-semibold hover:bg-[#4B5563]"
                         >
                           Cancel
                         </motion.button>
@@ -793,7 +766,7 @@ export default function ActivitiesPage() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-green-100 text-green-700 rounded-xl text-center"
+                      className="p-4 bg-[#22C55E]/10 text-[#4ADE80] rounded-xl text-center border border-[#22C55E]/20"
                     >
                       <Check className="w-8 h-8 mx-auto mb-2" />
                       <p className="font-semibold">Great job! Activity completed!</p>
@@ -815,11 +788,11 @@ export default function ActivitiesPage() {
                   initial={{ x: -300, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -300, opacity: 0 }}
-                  className={`lg:w-96 ${showFilters ? 'block' : 'hidden lg:block'}`}
+                  className={`w-full lg:w-96 ${showFilters ? 'block' : 'hidden lg:block'}`}
                 >
-                  <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 sticky top-24 border border-gray-100">
+                  <div className="bg-[#1F2937] border border-[#374151] p-5 backdrop-blur-sm rounded-xl shadow-lg lg:sticky lg:top-24 sm:p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="font-semibold text-gray-900">How are you feeling?</h2>
+                      <h2 className="font-semibold text-[#E5E7EB]">How are you feeling?</h2>
                       {showFilters && (
                         <motion.button 
                           whileHover={{ rotate: 90 }}
@@ -827,7 +800,7 @@ export default function ActivitiesPage() {
                           onClick={() => setShowFilters(false)}
                           className="lg:hidden"
                         >
-                          <X className="w-5 h-5 text-gray-500" />
+                          <X className="w-5 h-5 text-[#9CA3AF]" />
                         </motion.button>
                       )}
                     </div>
@@ -846,7 +819,7 @@ export default function ActivitiesPage() {
                             onClick={() => setSelectedMood(isSelected ? "" : mood.id)}
                             className={`
                               relative overflow-hidden rounded-xl transition-all
-                              ${isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''}
+                              ${isSelected ? 'ring-2 ring-[#22C55E] ring-offset-2 ring-offset-[#1F2937]' : ''}
                             `}
                           >
                             <div className="absolute inset-0">
@@ -869,7 +842,7 @@ export default function ActivitiesPage() {
 
                     {/* Category filter */}
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                         Category
                       </label>
                       <div className="grid grid-cols-2 gap-2">
@@ -885,8 +858,8 @@ export default function ActivitiesPage() {
                               className={`
                                 flex items-center gap-2 p-2 rounded-lg transition-all
                                 ${isSelected 
-                                  ? 'bg-purple-600 text-white' 
-                                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                  ? 'bg-[#22C55E] text-white' 
+                                  : 'bg-[#111827] text-[#9CA3AF] hover:bg-[#1F2937] border border-[#374151]'
                                 }
                               `}
                             >
@@ -900,13 +873,13 @@ export default function ActivitiesPage() {
 
                     {/* Duration filter */}
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                         Duration
                       </label>
                       <select
                         value={selectedDuration}
                         onChange={(e) => setSelectedDuration(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                        className="w-full p-2 bg-[#111827] border border-[#374151] rounded-lg focus:ring-2 focus:ring-[#22C55E] focus:border-transparent text-[#E5E7EB]"
                       >
                         {durations.map(dur => (
                           <option key={dur.id} value={dur.id}>{dur.name}</option>
@@ -916,17 +889,17 @@ export default function ActivitiesPage() {
 
                     {/* Search */}
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                         Search
                       </label>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search activities..."
-                          className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                          className="w-full pl-9 pr-4 py-2 bg-[#111827] border border-[#374151] rounded-lg focus:ring-2 focus:ring-[#22C55E] focus:border-transparent text-[#E5E7EB] placeholder:text-[#6B7280]"
                         />
                       </div>
                     </div>
@@ -934,11 +907,11 @@ export default function ActivitiesPage() {
                     {/* Quick Start Toggle */}
                     <div className="mb-6">
                       <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-sm font-medium text-gray-700">Quick Start Mode</span>
+                        <span className="text-sm font-medium text-[#9CA3AF]">Quick Start Mode</span>
                         <button
                           onClick={() => setShowQuickStart(!showQuickStart)}
                           className={`relative w-12 h-6 rounded-full transition-colors ${
-                            showQuickStart ? 'bg-purple-600' : 'bg-gray-300'
+                            showQuickStart ? 'bg-[#22C55E]' : 'bg-[#374151]'
                           }`}
                         >
                           <motion.div
@@ -962,7 +935,7 @@ export default function ActivitiesPage() {
                           setSelectedDuration("any");
                           setSearchQuery("");
                         }}
-                        className="mt-4 text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        className="mt-4 text-sm text-[#22C55E] hover:text-[#4ADE80] flex items-center gap-1"
                       >
                         <RefreshCw className="w-4 h-4" />
                         Clear all filters
@@ -979,33 +952,13 @@ export default function ActivitiesPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex-1"
             >
-              {/* Wellness Activities Heading */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-8"
-              >
-                {/* <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Wellness Activities
-                  </h1>
-                </div>
-                <p className="text-gray-600 ml-11">
-                  Discover calming activities to nurture your mind and body
-                </p> */}
-              </motion.div>
-
               {/* Filter Toggle Button for Mobile */}
               <div className="lg:hidden flex justify-end mb-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white rounded-lg shadow-md"
                 >
                   <Filter className="w-4 h-4" />
                   <span>Filters</span>
@@ -1038,9 +991,6 @@ export default function ActivitiesPage() {
                             fill
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
-                          <div className="absolute top-2 right-2 text-2xl">
-                            {activity.icon}
-                          </div>
                         </div>
                         <h3 className="font-medium mb-1">{activity.title}</h3>
                         <p className="text-sm text-white/80 flex items-center gap-1">
@@ -1072,7 +1022,7 @@ export default function ActivitiesPage() {
                         onHoverStart={() => setHoveredActivity(activity.id)}
                         onHoverEnd={() => setHoveredActivity(null)}
                         onClick={() => startActivity(activity)}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all relative group cursor-pointer"
+                        className="bg-[#1F2937] rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all relative group cursor-pointer border border-[#374151] hover:border-[#22C55E]"
                       >
                         {/* Card Image */}
                         <div className="relative h-48 overflow-hidden">
@@ -1086,24 +1036,19 @@ export default function ActivitiesPage() {
                           
                           {/* Category Badge */}
                           <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-white/90 backdrop-blur text-gray-700 text-xs font-medium rounded-full shadow-lg">
+                            <span className="px-2 py-1 bg-black/70 backdrop-blur text-[#E5E7EB] text-xs font-medium rounded-full shadow-lg">
                               {activity.category}
                             </span>
-                          </div>
-
-                          {/* Icon Overlay */}
-                          <div className="absolute top-3 right-3 text-3xl">
-                            {activity.icon}
                           </div>
                         </div>
                         
                         {/* Card Content */}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+                          <h3 className="text-lg font-semibold text-[#E5E7EB] mb-2 line-clamp-1">
                             {activity.title}
                           </h3>
                           
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                          <p className="text-sm text-[#9CA3AF] mb-3 line-clamp-2">
                             {activity.description}
                           </p>
                           
@@ -1121,7 +1066,7 @@ export default function ActivitiesPage() {
                               ) : null;
                             })}
                             {activity.moodTags.length > 3 && (
-                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              <span className="px-2 py-0.5 bg-[#111827] text-[#6B7280] text-xs rounded-full">
                                 +{activity.moodTags.length - 3}
                               </span>
                             )}
@@ -1129,7 +1074,7 @@ export default function ActivitiesPage() {
                           
                           {/* Duration */}
                           <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1 text-gray-500">
+                            <span className="flex items-center gap-1 text-[#9CA3AF]">
                               <Clock className="w-4 h-4" />
                               {activity.duration} min
                             </span>
@@ -1139,7 +1084,7 @@ export default function ActivitiesPage() {
                               <motion.div
                                 animate={{ x: [0, 5, 0] }}
                                 transition={{ duration: 1, repeat: Infinity }}
-                                className="flex items-center gap-1 text-purple-600"
+                                className="flex items-center gap-1 text-[#22C55E]"
                               >
                                 <Play className="w-4 h-4" />
                                 <span className="text-xs">Quick Start</span>
@@ -1179,17 +1124,17 @@ export default function ActivitiesPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="text-center py-12 bg-white rounded-xl shadow-lg"
+                    className="text-center py-12 bg-[#1F2937] rounded-xl shadow-lg border border-[#374151]"
                   >
                     <motion.div
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
-                      className="inline-block p-4 bg-gray-100 rounded-full mb-4"
+                      className="inline-block p-4 bg-[#111827] rounded-full mb-4"
                     >
-                      <Search className="w-8 h-8 text-gray-400" />
+                      <Search className="w-8 h-8 text-[#6B7280]" />
                     </motion.div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No activities found</h3>
-                    <p className="text-gray-500">Try adjusting your filters or search query</p>
+                    <h3 className="text-lg font-medium text-[#E5E7EB] mb-2">No activities found</h3>
+                    <p className="text-[#9CA3AF]">Try adjusting your filters or search query</p>
                   </motion.div>
                 )}
               </AnimatePresence>

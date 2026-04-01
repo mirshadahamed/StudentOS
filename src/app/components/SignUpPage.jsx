@@ -180,9 +180,9 @@ export default function AnimatedSignUp() {
           initial={{ opacity: 0, y: -100, x: "-50%" }}
           animate={{ opacity: 1, y: 20, x: "-50%" }}
           exit={{ opacity: 0, y: -100, x: "-50%" }}
-          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+          className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transform"
         >
-          <div className="flex items-center gap-3 bg-red-500/90 backdrop-blur-md border border-red-400 rounded-xl px-4 py-3 shadow-lg max-w-md">
+          <div className="flex items-start gap-3 rounded-xl border border-red-400 bg-red-500/90 px-4 py-3 shadow-lg backdrop-blur-md">
             <div className="p-1 bg-red-600 rounded-full">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
@@ -205,12 +205,12 @@ export default function AnimatedSignUp() {
       />
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 sm:py-12">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20"
+          className="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-lg sm:p-8"
         >
           <div className="text-center mb-8">
             <motion.div
@@ -226,7 +226,7 @@ export default function AnimatedSignUp() {
             >
               <User className="w-8 h-8 text-white" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
+            <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Create Account</h2>
             <p className="text-white/60">Join us to start your journey</p>
           </div>
 
@@ -278,7 +278,7 @@ export default function AnimatedSignUp() {
             {/* Trusted Person's Phone Number */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Trusted Person's Phone Number <span className="text-purple-400">*</span>
+                Trusted Person&apos;s Phone Number <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
