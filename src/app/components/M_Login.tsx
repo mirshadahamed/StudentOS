@@ -121,6 +121,127 @@ const moodFactors = [
 // Banned words for content filtering
 const bannedWords = ["kill", "suicide", "die", "death", "kill myself", "hurt myself", "self harm", "end it"];
 
+// Animated gradient background with shade effects
+const AnimatedBackground = () => {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      {/* Base dark gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0A0F1A] via-[#0F172A] to-[#020617]" />
+      
+      {/* Radial gradient overlay for depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#22C55E]/5 via-transparent to-transparent" />
+      
+      {/* Animated gradient orbs with shade effects */}
+      <motion.div
+        className="absolute top-20 -left-40 w-96 h-96 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.05) 50%, transparent 70%)",
+        }}
+        animate={{
+          x: [0, 150, 0],
+          y: [0, 80, 0],
+          scale: [1, 1.3, 1],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      
+      <motion.div
+        className="absolute bottom-20 -right-40 w-96 h-96 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(74,222,128,0.1) 0%, rgba(74,222,128,0.03) 50%, transparent 70%)",
+        }}
+        animate={{
+          x: [0, -120, 0],
+          y: [0, -60, 0],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+      />
+      
+      <motion.div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(56,189,248,0.08) 0%, rgba(56,189,248,0.02) 50%, transparent 70%)",
+        }}
+        animate={{
+          scale: [1, 1.5, 1],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Additional subtle shade layers */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1A]/30 via-transparent to-[#020617]/30" />
+      
+      {/* Grid pattern for texture */}
+      <div className="absolute inset-0 opacity-[0.02]" 
+        style={{
+          backgroundImage: `linear-gradient(to right, #22C55E 1px, transparent 1px), linear-gradient(to bottom, #22C55E 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
+        }} 
+      />
+    </div>
+  );
+};
+
+// Floating particles with shade
+const FloatingParticles = () => {
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 4 + 1,
+    duration: Math.random() * 20 + 15,
+    delay: Math.random() * 10,
+    opacity: Math.random() * 0.2 + 0.05,
+    blur: Math.random() * 2
+  }));
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: particle.size,
+            height: particle.size,
+            background: `radial-gradient(circle, rgba(34,197,94,${particle.opacity}) 0%, rgba(34,197,94,0) 100%)`,
+            filter: `blur(${particle.blur}px)`,
+          }}
+          animate={{
+            y: [0, -50, 0],
+            x: [0, Math.random() * 30 - 15, 0],
+            opacity: [particle.opacity, particle.opacity * 0.3, particle.opacity],
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const router = useRouter();
   
@@ -339,6 +460,7 @@ export default function Dashboard() {
         moodToSave = "neutral";
       }
 
+      // Save mood with intensity and factors
       const saveRes = await fetch("/api/save-mood", {
         method: "POST",
         headers: {
@@ -349,7 +471,7 @@ export default function Dashboard() {
           text: currentNote,
           mood: moodToSave,
           score: sentiment?.score || 0,
-          intensity: moodIntensity,
+          intensity: moodIntensity, // Store intensity value
           factors: selectedFactors,
         }),
       });
@@ -357,6 +479,8 @@ export default function Dashboard() {
       if (!saveRes.ok) {
         throw new Error("Failed to save mood");
       }
+
+      const savedData = await saveRes.json();
 
       if (moodToSave === "sad") {
         const riskRes = await fetch("/api/check-risk", {
@@ -392,7 +516,7 @@ export default function Dashboard() {
       }
 
       const newEntry: MoodEntry = {
-        id: Date.now().toString(),
+        id: savedData._id || Date.now().toString(),
         mood: moodToSave,
         intensity: moodIntensity,
         timestamp: new Date(),
@@ -409,7 +533,7 @@ export default function Dashboard() {
       setSelectedFactors([]);
       setMoodIntensity(3);
 
-      alert(`✅ Mood saved successfully as "${moodToSave}"!`);
+      alert(`✅ Mood saved successfully as "${moodToSave}" with intensity ${moodIntensity}/5!`);
 
     } catch (error) {
       console.error("Error saving mood:", error);
@@ -465,7 +589,11 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0F172A]">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Animated Background with Shade Effects */}
+      <AnimatedBackground />
+      <FloatingParticles />
+
       {/* Error Toast Notification */}
       <AnimatePresence>
         {showError && errorMessage && (
@@ -475,7 +603,7 @@ export default function Dashboard() {
             exit={{ opacity: 0, y: -100, x: "-50%" }}
             className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transform"
           >
-            <div className="flex items-center gap-3 bg-red-950/90 border border-red-800 rounded-xl px-4 py-3 shadow-lg max-w-md">
+            <div className="flex items-center gap-3 bg-red-950/90 backdrop-blur-md border border-red-800 rounded-xl px-4 py-3 shadow-2xl shadow-red-900/20 max-w-md">
               <div className="p-1 bg-red-900/50 rounded-full">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
@@ -491,8 +619,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#111827] border-b border-[#374151]">
+      {/* Navbar with shadow */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#111827]/80 backdrop-blur-md border-b border-[#374151] shadow-lg shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Back Button - Left Side */}
@@ -500,7 +628,7 @@ export default function Dashboard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/")}
-              className="flex items-center gap-2 px-4 py-2 text-[#E5E7EB] bg-[#1F2937] rounded-xl hover:bg-[#374151] transition-all font-medium"
+              className="flex items-center gap-2 px-4 py-2 text-[#E5E7EB] bg-[#1F2937]/80 backdrop-blur-sm rounded-xl hover:bg-[#374151] transition-all font-medium shadow-md"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back</span>
@@ -510,21 +638,21 @@ export default function Dashboard() {
             <div className="hidden md:flex items-center gap-2">
               <Link 
                 href="/dashboard" 
-                className="flex items-center gap-2 px-5 py-2.5 text-[#22C55E] bg-[#22C55E]/10 rounded-xl hover:bg-[#22C55E]/20 transition-all font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 text-[#22C55E] bg-[#22C55E]/10 rounded-xl hover:bg-[#22C55E]/20 transition-all font-medium shadow-md"
               >
                 <Home className="w-4 h-4" />
                 <span>Home</span>
               </Link>
               <Link 
                 href="/Analytics_Page" 
-                className="flex items-center gap-2 px-5 py-2.5 text-[#E5E7EB] hover:text-[#22C55E] bg-[#1F2937] rounded-xl hover:bg-[#374151] transition-all font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 text-[#E5E7EB] hover:text-[#22C55E] bg-[#1F2937]/80 backdrop-blur-sm rounded-xl hover:bg-[#374151] transition-all font-medium shadow-md"
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Analytics</span>
               </Link>
               <Link 
                 href="/ActivityPage" 
-                className="flex items-center gap-2 px-5 py-2.5 text-[#E5E7EB] hover:text-[#22C55E] bg-[#1F2937] rounded-xl hover:bg-[#374151] transition-all font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 text-[#E5E7EB] hover:text-[#22C55E] bg-[#1F2937]/80 backdrop-blur-sm rounded-xl hover:bg-[#374151] transition-all font-medium shadow-md"
               >
                 <Activity className="w-4 h-4" />
                 <span>Activities</span>
@@ -536,7 +664,7 @@ export default function Dashboard() {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-3 rounded-xl bg-[#1F2937] text-[#E5E7EB] hover:bg-[#374151] transition-all"
+                className="p-3 rounded-xl bg-[#1F2937]/80 backdrop-blur-sm text-[#E5E7EB] hover:bg-[#374151] transition-all shadow-md"
               >
                 {isMobileMenuOpen ? (
                   <XIcon className="w-5 h-5" />
@@ -561,14 +689,14 @@ export default function Dashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
             />
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="mobile-menu-container fixed left-0 top-0 bottom-0 w-72 bg-[#111827] shadow-2xl z-50 md:hidden"
+              className="mobile-menu-container fixed left-0 top-0 bottom-0 w-72 bg-[#111827]/95 backdrop-blur-xl shadow-2xl z-50 md:hidden"
             >
               <div className="p-6 border-b border-[#374151]">
                 <div className="flex items-center justify-between">
@@ -591,7 +719,7 @@ export default function Dashboard() {
                     setIsMobileMenuOpen(false);
                     router.push("/");
                   }}
-                  className="flex items-center gap-2 w-full px-4 py-3 bg-[#1F2937] hover:bg-[#374151] rounded-xl transition-all text-[#E5E7EB] mt-4"
+                  className="flex items-center gap-2 w-full px-4 py-3 bg-[#1F2937] hover:bg-[#374151] rounded-xl transition-all text-[#E5E7EB] mt-4 shadow-md"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   <span className="font-medium">Go Back</span>
@@ -608,7 +736,7 @@ export default function Dashboard() {
                 <Link
                   href="/dashboard"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group"
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group shadow-sm"
                 >
                   <div className="p-2 rounded-lg bg-[#22C55E]/10 text-[#22C55E] group-hover:bg-[#22C55E] group-hover:text-white transition-colors">
                     <Home className="w-5 h-5" />
@@ -622,7 +750,7 @@ export default function Dashboard() {
                 <Link
                   href="/Analytics_Page"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group"
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group shadow-sm"
                 >
                   <div className="p-2 rounded-lg bg-[#1F2937] text-[#9CA3AF] group-hover:bg-[#22C55E] group-hover:text-white transition-colors">
                     <BarChart3 className="w-5 h-5" />
@@ -636,7 +764,7 @@ export default function Dashboard() {
                 <Link
                   href="/ActivityPage"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group"
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#1F2937] transition-all duration-200 group shadow-sm"
                 >
                   <div className="p-2 rounded-lg bg-[#1F2937] text-[#9CA3AF] group-hover:bg-[#22C55E] group-hover:text-white transition-colors">
                     <Activity className="w-5 h-5" />
@@ -653,7 +781,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Add padding top to account for fixed header */}
-      <div className="pt-16">
+      <div className="pt-16 relative z-10">
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Welcome Header with Simple Greeting */}
@@ -668,7 +796,7 @@ export default function Dashboard() {
                 <h1 className="text-3xl font-bold text-[#E5E7EB] sm:text-4xl">Loading...</h1>
               </div>
             ) : (
-              <h1 className="mb-3 text-3xl font-bold text-[#E5E7EB] sm:text-4xl">
+              <h1 className="mb-3 text-3xl font-bold text-[#E5E7EB] sm:text-4xl drop-shadow-lg">
                 {getGreeting()}
                 {getUserFirstName() && (
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22C55E] to-[#4ADE80]">
@@ -704,15 +832,16 @@ export default function Dashboard() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#1F2937] rounded-3xl shadow-xl overflow-hidden border border-[#374151] hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-shadow"
+            className="bg-[#1F2937]/90 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-[#374151] hover:shadow-[0_0_25px_rgba(34,197,94,0.15)] transition-all duration-300"
           >
             {/* Card Header with Gradient */}
-            <div className="bg-gradient-to-r from-[#22C55E] to-[#16A34A] px-5 py-5 sm:px-8 sm:py-6">
-              <h2 className="flex items-center gap-3 text-xl font-semibold text-white sm:text-2xl">
+            <div className="bg-gradient-to-r from-[#22C55E] to-[#16A34A] px-5 py-5 sm:px-8 sm:py-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10" />
+              <h2 className="flex items-center gap-3 text-xl font-semibold text-white sm:text-2xl relative z-10">
                 <Sparkles className="w-6 h-6" />
                 Quick Mood Check-in
               </h2>
-              <p className="text-green-100 mt-1">Share how you&apos;re feeling right now</p>
+              <p className="text-green-100 mt-1 relative z-10">Share how you're feeling right now</p>
             </div>
 
             {/* Card Body */}
@@ -838,7 +967,7 @@ export default function Dashboard() {
                       }, 500);
                     }}
                     placeholder="How was your day? What's on your mind?... (minimum 5 characters)"
-                    className="w-full p-4 border border-[#374151] bg-[#111827] rounded-xl focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none text-[#E5E7EB] placeholder:text-[#6B7280]"
+                    className="w-full p-4 border border-[#374151] bg-[#111827]/50 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-[#22C55E] focus:border-transparent resize-none text-[#E5E7EB] placeholder:text-[#6B7280]"
                     rows={4}
                     maxLength={500}
                   />
@@ -849,7 +978,7 @@ export default function Dashboard() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute bottom-4 right-4 flex items-center gap-2 text-sm bg-[#111827] backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border border-[#374151]"
+                        className="absolute bottom-4 right-4 flex items-center gap-2 text-sm bg-[#111827]/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border border-[#374151]"
                       >
                         <Loader2 className="w-4 h-4 animate-spin text-[#22C55E]" />
                         <span className="text-[#9CA3AF]">Analyzing...</span>
@@ -866,7 +995,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="mb-6 p-4 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-xl text-white"
+                    className="mb-6 p-4 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-xl text-white shadow-lg"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -915,161 +1044,174 @@ export default function Dashboard() {
                 )}
               </AnimatePresence>
 
-              {/* Additional Options - Only show when mood is selected */}
+              {/* Intensity Section - Always visible when mood is selected */}
               {selectedMood && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mb-8"
-                  >
-                    <div className="bg-[#111827] rounded-2xl p-6 border border-[#374151]">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm font-medium text-[#E5E7EB]">
-                          How intense is this feeling?
-                        </label>
-                        <motion.div
-                          key={moodIntensity}
-                          initial={{ scale: 1.2 }}
-                          animate={{ scale: 1 }}
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            moodIntensity <= 2 ? 'bg-[#38BDF8]/20 text-[#38BDF8]' :
-                            moodIntensity <= 4 ? 'bg-[#4ADE80]/20 text-[#4ADE80]' :
-                            'bg-[#F87171]/20 text-[#F87171]'
-                          }`}
-                        >
-                          {moodIntensity <= 2 ? 'Mild' : moodIntensity <= 4 ? 'Moderate' : 'Intense'}
-                        </motion.div>
-                      </div>
-                      
-                      <input
-                        type="range"
-                        min="1"
-                        max="5"
-                        value={moodIntensity}
-                        onChange={(e) => setMoodIntensity(Number(e.target.value))}
-                        className="w-full h-3 bg-[#1F2937] rounded-lg appearance-none cursor-pointer accent-[#22C55E]"
-                        style={{
-                          background: `linear-gradient(to right, 
-                            ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '')} 0%, 
-                            ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '')} ${(moodIntensity/5)*100}%, 
-                            #374151 ${(moodIntensity/5)*100}%, 
-                            #374151 100%)`
-                        }}
-                      />
-                      
-                      <div className="flex justify-between text-xs text-[#9CA3AF] mt-2 px-1">
-                        <span>😌 Mild</span>
-                        <span>😐 Moderate</span>
-                        <span>😫 Intense</span>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="p-2 bg-[#22C55E]/10 rounded-lg">
-                        <Activity className="w-5 h-5 text-[#22C55E]" />
-                      </div>
-                      <h3 className="text-lg font-medium text-[#E5E7EB]">
-                        What&apos;s affecting your mood?
-                      </h3>
-                      <span className="text-xs text-[#6B7280] ml-auto">
-                        Select all that apply
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                      {moodFactors.map((factor) => {
-                        const Icon = factor.icon;
-                        const isSelected = selectedFactors.includes(factor.id);
-                        
-                        return (
-                          <motion.button
-                            key={factor.id}
-                            type="button"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleFactor(factor.id)}
-                            className={`
-                              relative flex flex-col items-center p-4 rounded-xl
-                              transition-all duration-200 border
-                              ${isSelected 
-                                ? `${factor.bg} ${factor.color} ring-2 ring-offset-2 ring-[#22C55E] border-[#22C55E]` 
-                                : 'bg-[#111827] hover:bg-[#1F2937] text-[#9CA3AF] border-[#374151]'
-                              }
-                            `}
-                          >
-                            <Icon className={`w-5 h-5 mb-2 ${isSelected ? factor.color : 'text-[#6B7280]'}`} />
-                            <span className={`text-xs font-medium ${isSelected ? factor.color : 'text-[#9CA3AF]'}`}>
-                              {factor.label}
-                            </span>
-                            {isSelected && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute -top-1 -right-1 w-5 h-5 bg-[#22C55E] rounded-full flex items-center justify-center"
-                              >
-                                <Check className="w-3 h-3 text-white" />
-                              </motion.div>
-                            )}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                    
-                    {selectedFactors.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-8"
+                >
+                  <div className="bg-[#111827]/50 backdrop-blur-sm rounded-2xl p-6 border border-[#374151] shadow-inner">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-sm font-medium text-[#E5E7EB]">
+                        How intense is this feeling?
+                      </label>
                       <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-4 flex flex-wrap gap-2"
+                        key={moodIntensity}
+                        initial={{ scale: 1.2 }}
+                        animate={{ scale: 1 }}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          moodIntensity <= 2 ? 'bg-[#38BDF8]/20 text-[#38BDF8]' :
+                          moodIntensity <= 4 ? 'bg-[#4ADE80]/20 text-[#4ADE80]' :
+                          'bg-[#F87171]/20 text-[#F87171]'
+                        }`}
                       >
-                        <span className="text-xs text-[#6B7280]">Selected:</span>
-                        {selectedFactors.map(factorId => {
-                          const factor = moodFactors.find(f => f.id === factorId);
-                          return factor ? (
-                            <span
-                              key={factor.id}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${factor.bg} ${factor.color}`}
-                            >
-                              <factor.icon className="w-3 h-3" />
-                              {factor.label}
-                            </span>
-                          ) : null;
-                        })}
+                        {moodIntensity <= 2 ? 'Mild' : moodIntensity <= 4 ? 'Moderate' : 'Intense'}
                       </motion.div>
-                    )}
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Coffee className="w-4 h-4 text-[#22C55E]" />
-                      <h4 className="text-sm font-medium text-[#E5E7EB]">Suggested activities:</h4>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {getCurrentSuggestions().map((suggestion, index) => (
+                    
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      value={moodIntensity}
+                      onChange={(e) => setMoodIntensity(Number(e.target.value))}
+                      className="w-full h-3 bg-[#1F2937] rounded-lg appearance-none cursor-pointer accent-[#22C55E]"
+                      style={{
+                        background: `linear-gradient(to right, 
+                          ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '')} 0%, 
+                          ${moodEmojis.find(m => m.id === selectedMood)?.color.replace('text', '')} ${(moodIntensity/5)*100}%, 
+                          #374151 ${(moodIntensity/5)*100}%, 
+                          #374151 100%)`
+                      }}
+                    />
+                    
+                    <div className="flex justify-between text-xs text-[#9CA3AF] mt-2 px-1">
+                      <span>😌 Mild</span>
+                      <span>😐 Moderate</span>
+                      <span>😫 Intense</span>
+                    </div>
+                    
+                    {/* Intensity description */}
+                    <p className="text-xs text-[#6B7280] mt-3 text-center">
+                      {moodIntensity === 1 && "Barely noticeable"}
+                      {moodIntensity === 2 && "Slightly felt"}
+                      {moodIntensity === 3 && "Moderately intense"}
+                      {moodIntensity === 4 && "Very intense"}
+                      {moodIntensity === 5 && "Extremely intense"}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Factors Section */}
+              {selectedMood && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-[#22C55E]/10 rounded-lg">
+                      <Activity className="w-5 h-5 text-[#22C55E]" />
+                    </div>
+                    <h3 className="text-lg font-medium text-[#E5E7EB]">
+                      What&apos;s affecting your mood?
+                    </h3>
+                    <span className="text-xs text-[#6B7280] ml-auto">
+                      Select all that apply
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                    {moodFactors.map((factor) => {
+                      const Icon = factor.icon;
+                      const isSelected = selectedFactors.includes(factor.id);
+                      
+                      return (
                         <motion.button
-                          key={index}
+                          key={factor.id}
                           type="button"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => setMoodNote(suggestion)}
-                          className="px-4 py-2 bg-[#22C55E]/10 text-[#22C55E] rounded-full text-sm hover:bg-[#22C55E]/20 transition-colors border border-[#22C55E]/20"
+                          onClick={() => toggleFactor(factor.id)}
+                          className={`
+                            relative flex flex-col items-center p-4 rounded-xl
+                            transition-all duration-200 border
+                            ${isSelected 
+                              ? `${factor.bg} ${factor.color} ring-2 ring-offset-2 ring-[#22C55E] border-[#22C55E]` 
+                              : 'bg-[#111827]/50 backdrop-blur-sm hover:bg-[#1F2937] text-[#9CA3AF] border-[#374151]'
+                            }
+                          `}
                         >
-                          {suggestion}
+                          <Icon className={`w-5 h-5 mb-2 ${isSelected ? factor.color : 'text-[#6B7280]'}`} />
+                          <span className={`text-xs font-medium ${isSelected ? factor.color : 'text-[#9CA3AF]'}`}>
+                            {factor.label}
+                          </span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-[#22C55E] rounded-full flex items-center justify-center shadow-md"
+                            >
+                              <Check className="w-3 h-3 text-white" />
+                            </motion.div>
+                          )}
                         </motion.button>
-                      ))}
-                    </div>
-                  </motion.div>
-                </>
+                      );
+                    })}
+                  </div>
+                  
+                  {selectedFactors.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-4 flex flex-wrap gap-2"
+                    >
+                      <span className="text-xs text-[#6B7280]">Selected:</span>
+                      {selectedFactors.map(factorId => {
+                        const factor = moodFactors.find(f => f.id === factorId);
+                        return factor ? (
+                          <span
+                            key={factor.id}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${factor.bg} ${factor.color}`}
+                          >
+                            <factor.icon className="w-3 h-3" />
+                            {factor.label}
+                          </span>
+                        ) : null;
+                      })}
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Suggested Activities */}
+              {selectedMood && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Coffee className="w-4 h-4 text-[#22C55E]" />
+                    <h4 className="text-sm font-medium text-[#E5E7EB]">Suggested activities:</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {getCurrentSuggestions().map((suggestion, index) => (
+                      <motion.button
+                        key={index}
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMoodNote(suggestion)}
+                        className="px-4 py-2 bg-[#22C55E]/10 text-[#22C55E] rounded-full text-sm hover:bg-[#22C55E]/20 transition-colors border border-[#22C55E]/20 shadow-sm"
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
               )}
 
               {/* Save Button */}
@@ -1084,7 +1226,7 @@ export default function Dashboard() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={saveMoodEntry}
-                    className="flex-1 py-4 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-xl font-semibold hover:shadow-lg transition-all relative overflow-hidden group"
+                    className="flex-1 py-4 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-xl font-semibold hover:shadow-lg transition-all relative overflow-hidden group shadow-md"
                   >
                     <motion.div
                       className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
@@ -1107,7 +1249,7 @@ export default function Dashboard() {
                       setSelectedFactors([]);
                       setMoodIntensity(3);
                     }}
-                    className="px-6 py-4 bg-[#111827] text-[#9CA3AF] rounded-xl hover:bg-[#1F2937] transition-colors border border-[#374151] sm:w-auto"
+                    className="px-6 py-4 bg-[#111827]/50 backdrop-blur-sm text-[#9CA3AF] rounded-xl hover:bg-[#1F2937] transition-colors border border-[#374151] sm:w-auto shadow-sm"
                   >
                     Cancel
                   </motion.button>

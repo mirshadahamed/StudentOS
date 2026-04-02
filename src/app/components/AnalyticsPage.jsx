@@ -31,7 +31,10 @@ import {
   CalendarDays,
   LineChart,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  BookOpen,
+  BookMarked,
+  Eye
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -173,33 +176,39 @@ const calculateStats = (data) => {
 const generateInsights = (data) => {
   const insights = [];
   
+  if (!data.length) return insights;
+  
   // Check weekend pattern
   const weekendMoods = data.filter(entry => {
     const day = new Date(entry.date).getDay();
     return day === 0 || day === 6;
   });
   
-  const weekendAvg = weekendMoods.reduce((sum, e) => sum + e.intensity, 0) / weekendMoods.length;
-  const overallAvg = data.reduce((sum, e) => sum + e.intensity, 0) / data.length;
-  
-  if (weekendAvg > overallAvg + 0.5) {
-    insights.push({
-      id: "weekend",
-      type: "pattern",
-      title: "Weekend Warrior",
-      description: "Your mood tends to be significantly better on weekends. Consider planning relaxing activities during the week.",
-      icon: Sun,
-      color: "text-[#4ADE80]"
-    });
+  if (weekendMoods.length > 0) {
+    const weekendAvg = weekendMoods.reduce((sum, e) => sum + e.intensity, 0) / weekendMoods.length;
+    const overallAvg = data.reduce((sum, e) => sum + e.intensity, 0) / data.length;
+    
+    if (weekendAvg > overallAvg + 0.5) {
+      insights.push({
+        id: "weekend",
+        type: "pattern",
+        title: "Weekend Warrior",
+        description: "Your mood tends to be significantly better on weekends. Consider planning relaxing activities during the week.",
+        icon: Sun,
+        color: "text-[#4ADE80]"
+      });
+    }
   }
   
   // Check most common factor correlations
   const factorMoods = {};
   data.forEach(entry => {
-    entry.factors.forEach(factor => {
-      if (!factorMoods[factor]) factorMoods[factor] = [];
-      factorMoods[factor].push(entry.intensity);
-    });
+    if (entry.factors && entry.factors.length > 0) {
+      entry.factors.forEach(factor => {
+        if (!factorMoods[factor]) factorMoods[factor] = [];
+        factorMoods[factor].push(entry.intensity);
+      });
+    }
   });
   
   let bestFactor = "";
@@ -207,7 +216,7 @@ const generateInsights = (data) => {
   
   Object.entries(factorMoods).forEach(([factor, intensities]) => {
     const avg = intensities.reduce((a, b) => a + b, 0) / intensities.length;
-    if (avg > bestAvg && intensities.length > 5) {
+    if (avg > bestAvg && intensities.length > 3) {
       bestAvg = avg;
       bestFactor = factor;
     }
@@ -266,6 +275,7 @@ export default function MoodHistoryPage() {
   const [viewType, setViewType] = useState("calendar");
   const [selectedMood, setSelectedMood] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedEntry, setExpandedEntry] = useState(null);
 
   const stats = useMemo(() => calculateStats(moodData), [moodData]);
   const insights = useMemo(() => generateInsights(moodData), [moodData]);
@@ -381,6 +391,14 @@ export default function MoodHistoryPage() {
     };
   }).sort((a, b) => b.count - a.count);
 
+  const toggleExpand = (id) => {
+    if (expandedEntry === id) {
+      setExpandedEntry(null);
+    } else {
+      setExpandedEntry(id);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0F172A]">
       {/* Header */}
@@ -408,11 +426,11 @@ export default function MoodHistoryPage() {
             </div>
           </div>
 
-          {/* View Tabs */}
+          {/* View Tabs - Only Calendar and Diary View */}
           <div className="mt-4 flex gap-2 overflow-x-auto border-b border-[#374151] pb-1">
             {[
-              { id: "calendar", label: "Calendar", icon: CalendarDays },
-              { id: "timeline", label: "Timeline", icon: BarChart3 }
+              { id: "calendar", label: "Calendar View", icon: CalendarDays },
+              { id: "diary", label: "Diary View", icon: BookOpen }
             ].map(tab => {
               const Icon = tab.icon;
               return (
@@ -698,81 +716,203 @@ export default function MoodHistoryPage() {
               </motion.div>
             )}
 
-            {/* Timeline View */}
-            {viewType === "timeline" && (
+            {/* Diary View */}
+            {viewType === "diary" && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-[#1F2937] rounded-xl shadow-sm p-4 sm:p-6 border border-[#374151]"
+                className="space-y-4"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-[#E5E7EB]">Mood Timeline</h2>
+                  <h2 className="text-lg font-semibold text-[#E5E7EB] flex items-center gap-2">
+                    <BookMarked className="w-5 h-5 text-[#22C55E]" />
+                    Mood Diary
+                  </h2>
                   <p className="text-sm text-[#6B7280]">{filteredData.length} entries</p>
                 </div>
 
-                {/* Timeline entries */}
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {filteredData.sort((a, b) => b.timestamp - a.timestamp).map((entry) => {
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  {filteredData.sort((a, b) => b.timestamp - a.timestamp).map((entry, index) => {
                     const mood = moodDefinitions[entry.mood];
                     if (!mood) return null;
                     
                     const Icon = mood.icon;
+                    const isExpanded = expandedEntry === entry.id;
                     
                     return (
                       <motion.div
                         key={entry.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col gap-3 rounded-lg bg-[#111827] p-3 transition-colors hover:bg-[#1F2937] sm:flex-row sm:items-center sm:gap-4 border border-[#374151]"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`bg-[#1F2937] rounded-xl border border-[#374151] overflow-hidden transition-all duration-300 hover:border-[#22C55E]/30 ${
+                          isExpanded ? 'shadow-[0_0_20px_rgba(34,197,94,0.1)]' : ''
+                        }`}
                       >
-                        <div className={`p-2 rounded-lg ${mood.bg}`}>
-                          <Icon className={`w-5 h-5 ${mood.color}`} />
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`font-medium ${mood.color}`}>{mood.name}</span>
-                            <span className="text-xs text-[#6B7280]">
-                              {new Date(entry.date).toLocaleDateString('en-US', { 
-                                weekday: 'short',
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}
-                            </span>
+                        {/* Diary Entry Header */}
+                        <div 
+                          className="p-4 cursor-pointer hover:bg-[#111827]/50 transition-colors"
+                          onClick={() => toggleExpand(entry.id)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${mood.bg}`}>
+                                <Icon className={`w-5 h-5 ${mood.color}`} />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`font-semibold ${mood.color}`}>{mood.name}</span>
+                                  <span className="text-xs text-[#6B7280]">•</span>
+                                  <span className="text-xs text-[#6B7280]">
+                                    {new Date(entry.date).toLocaleDateString('en-US', { 
+                                      weekday: 'long',
+                                      month: 'long', 
+                                      day: 'numeric',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex gap-1">
+                                    {[1,2,3,4,5].map(i => (
+                                      <div
+                                        key={i}
+                                        className={`w-1.5 h-1.5 rounded-full ${
+                                          i <= entry.intensity ? mood.color.replace('text', 'bg') : 'bg-[#374151]'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  {entry.factors && entry.factors.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                      {entry.factors.slice(0, 3).map((factor, i) => (
+                                        <span key={i} className="text-[10px] text-[#6B7280] bg-[#111827] px-1.5 py-0.5 rounded">
+                                          {factor}
+                                        </span>
+                                      ))}
+                                      {entry.factors.length > 3 && (
+                                        <span className="text-[10px] text-[#6B7280]">+{entry.factors.length - 3}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <motion.div
+                              animate={{ rotate: isExpanded ? 180 : 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="text-[#9CA3AF]"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </motion.div>
                           </div>
                           
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <div className="flex gap-1">
-                              {[1,2,3,4,5].map(i => (
-                                <div
-                                  key={i}
-                                  className={`w-2 h-2 rounded-full ${
-                                    i <= entry.intensity ? mood.color.replace('text', 'bg') : 'bg-[#374151]'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {entry.factors && entry.factors.length > 0 && (
-                              <span className="text-xs text-[#6B7280]">
-                                {entry.factors.join(' • ')}
-                              </span>
-                            )}
-                          </div>
+                          {/* Preview of entry */}
+                          {entry.notes && !isExpanded && (
+                            <p className="mt-2 text-sm text-[#9CA3AF] line-clamp-2 pl-12">
+                              {entry.notes}
+                            </p>
+                          )}
                         </div>
-                        
-                        {entry.notes && (
-                          <div className="max-w-full text-xs text-[#6B7280] sm:max-w-xs sm:truncate">
-                            &quot;{entry.notes}&quot;
-                          </div>
-                        )}
+
+                        {/* Expanded Content */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="border-t border-[#374151]"
+                            >
+                              <div className="p-4 bg-[#111827]/30">
+                                {/* Full Notes */}
+                                {entry.notes ? (
+                                  <div className="mb-4">
+                                    <h4 className="text-xs font-semibold text-[#22C55E] mb-2 flex items-center gap-1">
+                                      <BookOpen className="w-3 h-3" />
+                                      Journal Entry
+                                    </h4>
+                                    <p className="text-[#E5E7EB] text-sm leading-relaxed whitespace-pre-wrap">
+                                      {entry.notes}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="mb-4 text-center py-4">
+                                    <p className="text-[#6B7280] text-sm italic">No written entry for this day</p>
+                                  </div>
+                                )}
+
+                                {/* All Factors */}
+                                {entry.factors && entry.factors.length > 0 && (
+                                  <div className="mb-4">
+                                    <h4 className="text-xs font-semibold text-[#22C55E] mb-2 flex items-center gap-1">
+                                      <Activity className="w-3 h-3" />
+                                      Contributing Factors
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {entry.factors.map((factor, i) => (
+                                        <span
+                                          key={i}
+                                          className="px-2 py-1 bg-[#1F2937] text-[#9CA3AF] text-xs rounded-full border border-[#374151]"
+                                        >
+                                          {factor}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Intensity Breakdown */}
+                                <div>
+                                  <h4 className="text-xs font-semibold text-[#22C55E] mb-2 flex items-center gap-1">
+                                    <Activity className="w-3 h-3" />
+                                    Intensity Level
+                                  </h4>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 bg-[#374151] rounded-full h-2">
+                                      <div 
+                                        className={`bg-gradient-to-r ${mood.gradient} rounded-full h-2`}
+                                        style={{ width: `${(entry.intensity / 5) * 100}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-[#E5E7EB] font-medium">
+                                      {entry.intensity}/5
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-[#6B7280] mt-1">
+                                    {entry.intensity <= 2 ? 'Mild intensity' : entry.intensity <= 4 ? 'Moderate intensity' : 'High intensity'}
+                                  </p>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="mt-4 pt-3 border-t border-[#374151] flex justify-end">
+                                  <button
+                                    onClick={() => toggleExpand(entry.id)}
+                                    className="text-xs text-[#9CA3AF] hover:text-[#22C55E] transition-colors flex items-center gap-1"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    Collapse
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
                     );
                   })}
                   
                   {filteredData.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-[#6B7280]">No mood entries for this period</p>
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-12 bg-[#1F2937] rounded-xl border border-[#374151]"
+                    >
+                      <BookOpen className="w-12 h-12 text-[#374151] mx-auto mb-3" />
+                      <p className="text-[#6B7280]">No diary entries for this period</p>
+                      <p className="text-sm text-[#6B7280] mt-1">Start writing about your days to see them here</p>
+                    </motion.div>
                   )}
                 </div>
               </motion.div>

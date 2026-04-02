@@ -5,6 +5,8 @@ const moodSchema = new mongoose.Schema({
   mood: String,
   text: String,
   score: Number,
+  intensity: Number,
+  factors: [String],
   createdAt: {
     type: Date,
     default: Date.now,

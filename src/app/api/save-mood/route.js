@@ -6,7 +6,7 @@ export async function POST(req) {
 
   try {
 
-    const { userId, text = "", mood, score } = await req.json();
+    const { userId, text = "", mood, score, intensity, factors = [] } = await req.json();
 
     await connectMongoDB();
 
@@ -31,6 +31,8 @@ export async function POST(req) {
       text,
       mood: normalizedMood,
       score: finalScore,
+      intensity: typeof intensity === "number" ? intensity : undefined,
+      factors: Array.isArray(factors) ? factors : [],
       createdAt: new Date()
     });
 
