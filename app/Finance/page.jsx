@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 
 import MoneyRain from '../../components/MoneyRain';
+import WealthCity from '../../components/WealthCity';
 
 // --- 💎 INNOVATIVE CATEGORY CARD (TOP GRID) ---
 const ModuleCard = ({ title, description, icon: Icon, link, color, delay }) => (
@@ -141,7 +142,7 @@ const WealthTerrarium = ({ income, expenses }) => {
 
 // --- 🚀 MAIN DASHBOARD ---
 export default function FinanceHub() {
-  const [stats, setStats] = useState({ income: 0, expenses: 0, savings: 0, splits: 0 });
+  const [stats, setStats] = useState({ income: 0, expenses: 0, savings: 0, savingsGoal: 0, splits: 0 });
   const [barData, setBarData] = useState([]);
   const [pieData, setPieData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,9 +176,19 @@ export default function FinanceHub() {
         });
 
         const totalSav = saveData.reduce((sum, s) => sum + (s.current || 0), 0);
+        // Calculate the total goal amount across all savings pots
+        const totalTarget = saveData.reduce((sum, s) => sum + (s.target || 0), 0);
+        
         const totalSplit = splitData.reduce((sum, s) => sum + (s.total_amount || 0), 0);
 
-        setStats({ income: totalInc, expenses: totalExp, savings: totalSav, splits: splitData.length });
+        setStats({ 
+          income: totalInc, 
+          expenses: totalExp, 
+          savings: totalSav, 
+          savingsGoal: totalTarget > 0 ? totalTarget : 500000, // Fallback if no goals exist
+          splits: splitData.length 
+        });
+        
         setBarData(Object.keys(categories).map(key => ({ name: key, value: categories[key] })).sort((a, b) => b.value - a.value));
         setPieData([{ name: 'Total Income', value: totalInc }, { name: 'Total Saved', value: totalSav }, { name: 'Total Spent', value: totalExp }, { name: 'Split Bills', value: totalSplit }].filter(item => item.value > 0));
 
@@ -231,12 +242,22 @@ export default function FinanceHub() {
           <Activity className="text-cyan-400" size={32} /> Wealth Analytics
         </h2>
 
-        {/* --- THE NEW 3D INTERACTIVE CARDS --- */}
+        {/* --- THE 3D INTERACTIVE STAT CARDS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <Interactive3DCard title="Total Income" amount={`LKR ${stats.income.toLocaleString()}`} subtitle="All recorded earnings" colorClass="bg-blue-500" icon={TrendingUp} />
           <Interactive3DCard title="Total Saved" amount={`LKR ${stats.savings.toLocaleString()}`} subtitle="Across all savings goals" colorClass="bg-emerald-500" icon={PiggyBank} />
           <Interactive3DCard title="Total Spent" amount={`LKR ${stats.expenses.toLocaleString()}`} subtitle="Recorded outgoings" colorClass="bg-rose-500" icon={Wallet} />
           <Interactive3DCard title="Active Splits" amount={stats.splits} subtitle="Pending split bills" colorClass="bg-purple-500" icon={Receipt} />
+        </div>
+
+        {/* --- NEW 3D WEALTH CITY VISUALIZER --- */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-neutral-300">Digital Empire Visualizer</h3>
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">LIVE 3D RENDER</span>
+          </div>
+          {/* Passing the dynamic savings and calculated target directly to your 3D component */}
+          <WealthCity currentSavings={stats.savings} goalAmount={stats.savingsGoal} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

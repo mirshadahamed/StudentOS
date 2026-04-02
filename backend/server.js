@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
+const twilio = require('twilio'); // <-- Added Twilio
 const connectDB = require('./database');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -11,10 +13,12 @@ const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
+// CRITICAL FOR TWILIO: This allows Express to read Twilio's incoming webhook data
+app.use(express.urlencoded({ extended: true })); 
 
 connectDB();
 
-// --- 🏗️ MONGODB SCHEMAS ---
+// --- MONGODB SCHEMAS ---
 const Transaction = mongoose.model('Transaction', new mongoose.Schema({
   title: String,
   amount: Number,
@@ -22,6 +26,7 @@ const Transaction = mongoose.model('Transaction', new mongoose.Schema({
   category: String,
   status: String,
   dueDate: String,
+  isRecurring: { type: Boolean, default: false },
   date: { type: Date, default: Date.now }
 }));
 
@@ -42,8 +47,7 @@ const Split = mongoose.model('Split', new mongoose.Schema({
   date: { type: Date, default: Date.now }
 }));
 
-
-// --- 💰 TRANSACTION ROUTES ---
+// --- TRANSACTION ROUTES ---
 app.get('/api/transactions', async (req, res) => {
   try {
     const data = await Transaction.find().sort({ date: -1 });
@@ -58,7 +62,8 @@ app.post('/api/transactions', async (req, res) => {
       amount: req.body.amount,
       type: req.body.type,
       category: req.body.category || 'Misc',
-      status: req.body.status
+      status: req.body.status,
+      isRecurring: req.body.isRecurring || false
     });
     res.json({ ...newTx.toObject(), id: newTx._id });
   } catch (err) { res.status(400).json({ error: err.message }); }
@@ -78,8 +83,36 @@ app.delete('/api/transactions/:id', async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
+// --- STREAK CALCULATION ROUTE ---
+app.get('/api/streak', async (req, res) => {
+  try {
+    const txs = await Transaction.find({ type: 'expense' }).select('date').sort({ date: -1 });
+    if (txs.length === 0) return res.json({ streak: 0 });
 
-// --- 🎯 SAVINGS / WISHLIST ROUTES ---
+    let currentStreak = 0;
+    const now = new Date();
+    const currentWeekStart = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0,0,0,0);
+    
+    let expectedWeekStart = currentWeekStart;
+
+    for (let i = 0; i < txs.length; i++) {
+      const txDate = new Date(txs[i].date);
+      const txWeekStart = new Date(txDate.setDate(txDate.getDate() - txDate.getDay())).setHours(0,0,0,0);
+
+      if (txWeekStart === expectedWeekStart) {
+        if (i === 0 || new Date(txs[i-1].date).setHours(0,0,0,0) !== txWeekStart) {
+             currentStreak++;
+             expectedWeekStart = new Date(expectedWeekStart - 7 * 24 * 60 * 60 * 1000).setHours(0,0,0,0);
+        }
+      } else if (txWeekStart < expectedWeekStart) {
+        break; 
+      }
+    }
+    res.json({ streak: currentStreak });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// --- SAVINGS ROUTES ---
 app.get('/api/savings', async (req, res) => {
   try {
     const data = await Saving.find().sort({ date: -1 });
@@ -107,8 +140,7 @@ app.put('/api/savings/:id', async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-
-// --- 🍕 ADVANCED BILL SPLITTER ROUTES ---
+// --- SPLIT BILL ROUTES ---
 app.get('/api/splits', async (req, res) => {
   try {
     const data = await Split.find().sort({ date: -1 });
@@ -155,50 +187,85 @@ app.post('/api/splits', async (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-
-// --- 🤖 AI ADVISOR ROUTE (3 OPTIONS SRI LANKA) ---
+// --- AI ADVISOR ROUTE ---
 app.post('/api/advisor', async (req, res) => {
   const { amount } = req.body;
-  
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: "API Key missing" });
-  }
+  if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "API Key missing" });
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
     
-    // 👇 NEW: 3 Options Prompt (Low, Medium, High Risk) for Sri Lanka
     const prompt = `Act as an expert financial advisor in Sri Lanka. A university student has a surplus of LKR ${amount}. 
-    Provide exactly 3 diverse investment options available ONLY in Sri Lanka:
-    1. A Low-Risk option (e.g., CBSL Treasury Bills, or BOC/Commercial Bank Fixed Deposits).
-    2. A Medium-Risk option (e.g., Corporate Debentures or Unit Trusts like CAL/First Capital).
-    3. A High-Risk option (e.g., Blue-chip stocks on the Colombo Stock Exchange - CSE).
-    
-    Do NOT suggest foreign high-yield savings accounts, US Treasury bonds, IRAs, or 401ks.
-    
-    Return valid JSON only matching this exact structure: 
-    {
-      "options": [
-        {
-          "title": "Specific Sri Lankan Investment Name",
-          "category": "Low Risk / Medium Risk / High Risk",
-          "estimatedReturn": "Expected %",
-          "explanation": "Short, punchy reason why this fits a student's portfolio."
-        }
-      ]
-    }`;
+    Provide exactly 3 diverse investment options available ONLY in Sri Lanka. Return valid JSON only.`;
     
     const result = await model.generateContent(prompt);
     const textResponse = result.response.text();
-    
     const cleanedJson = textResponse.replace(/```json|```/g, '').trim();
     res.json(JSON.parse(cleanedJson));
-    
   } catch (error) { 
-    console.error("❌ Google AI Error Details:", error); 
     res.status(500).json({ error: "AI Failed" }); 
   }
+});
+
+// --- CRON JOB: RECURRING EXPENSES ---
+cron.schedule('0 0 * * *', async () => {
+  const today = new Date();
+  if (today.getDate() === 1) {
+    try {
+      const recurringTxs = await Transaction.aggregate([
+        { $match: { isRecurring: true } },
+        { $sort: { date: -1 } },
+        { $group: { _id: "$title", doc: { $first: "$$ROOT" } } },
+        { $replaceRoot: { newRoot: "$doc" } }
+      ]);
+
+      for (const tx of recurringTxs) {
+        const dueDate = new Date(today.getFullYear(), today.getMonth(), 5).toISOString().split('T')[0];
+        await Transaction.create({
+          title: tx.title, amount: tx.amount, type: tx.type, category: tx.category,
+          status: `pending|${dueDate}`, isRecurring: true, date: new Date()
+        });
+      }
+    } catch (error) { console.error('❌ Error:', error); }
+  }
+});
+
+// --- 🟢 WHATSAPP BOT LOGIC (TWILIO WEBHOOK) ---
+const { MessagingResponse } = twilio.twiml;
+
+app.post('/api/whatsapp', async (req, res) => {
+  const incomingMsg = req.body.Body || '';
+  const twiml = new MessagingResponse();
+
+  // Regex to match "Word Number" format (e.g., "Lunch 1500")
+  const match = incomingMsg.match(/(.+)\s+(\d+)$/);
+
+  if (match) {
+    const title = match[1].trim();
+    const amount = parseInt(match[2], 10);
+
+    try {
+      await Transaction.create({
+        title: title,
+        amount: amount,
+        type: 'expense',
+        category: 'Other', 
+        status: 'completed',
+        date: new Date()
+      });
+
+      twiml.message(`✅ Logged: LKR ${amount.toLocaleString()} for ${title}!`);
+    } catch (error) {
+      console.error(error);
+      twiml.message(`❌ Error saving expense.`);
+    }
+  } else {
+    twiml.message("👋 Welcome to StudentOS Finance!\n\nTo log an expense via WhatsApp, simply reply with the Item and Amount.\n\n*Example:* Uber 500");
+  }
+
+  // Send the XML response back to Twilio
+  res.type('text/xml').send(twiml.toString());
 });
 
 app.listen(PORT, () => console.log(`✅ Backend running on http://localhost:${PORT}`));
