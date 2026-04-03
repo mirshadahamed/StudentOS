@@ -1,0 +1,21 @@
+{
+  "name": "student-os",
+  "version": "0.1.0",
+  "description": "StudentOS - Integrated student management platform",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend & npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "start": "npm start --workspace=frontend",
+    "start:backend": "npm start --workspace=backend",
+    "lint": "npm run lint --workspace=frontend"
+  }
+}

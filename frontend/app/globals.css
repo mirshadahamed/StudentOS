@@ -1,0 +1,53 @@
+/* frontend/app/globals.css */
+/* StudentOS — Light theme with pinkish-orange gradient */
+
+@import "tailwindcss";
+
+:root {
+  /* Core palette */
+  --bg-primary:   #fdf8f6;
+  --bg-secondary: #fff5f0;
+  --bg-card:      #ffffff;
+  --bg-glass:     rgba(255,255,255,0.72);
+
+  --border-soft:  rgba(240,140,100,0.15);
+  --border-med:   rgba(240,140,100,0.28);
+  --border-strong:rgba(240,140,100,0.45);
+
+  --text-primary: #1a0a00;
+  --text-secondary:#6b3a25;
+  --text-muted:   #b07055;
+  --text-faint:   #d4a090;
+
+  /* Gradient accents */
+  --grad-main:    linear-gradient(135deg, #f97316, #ec4899);
+  --grad-soft:    linear-gradient(135deg, #fed7aa, #fbcfe8);
+  --grad-card:    linear-gradient(145deg, #fff7f3, #fdf2f8);
+
+  /* Status colors (adapted for light bg) */
+  --critical: #dc2626;
+  --urgent:   #ea580c;
+  --soon:     #d97706;
+  --upcoming: #2563eb;
+  --planned:  #16a34a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Helvetica Neue', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #f9a87c; border-radius: 2px; }
+
+/* Color-scheme for date inputs */
+input[type="date"] { color-scheme: light; }
+
+/* Select styling */
+select option { background: #fff7f3; color: #1a0a00; }
