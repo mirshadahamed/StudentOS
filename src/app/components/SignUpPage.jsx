@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Phone, Eye, EyeOff, LogIn } from "lucide-react";
+import { Mail, Lock, User, Phone, Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 
 export default function AnimatedSignUp() {
   const canvasRef = useRef(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showError, setShowError] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,6 +17,20 @@ export default function AnimatedSignUp() {
     password: "",
     confirmPassword: ""
   });
+
+  // Error timeout
+  const errorTimeout = useRef(null);
+
+  // Show error message
+  const showErrorMessage = (message) => {
+    setErrorMessage(message);
+    setShowError(true);
+    if (errorTimeout.current) clearTimeout(errorTimeout.current);
+    errorTimeout.current = setTimeout(() => {
+      setShowError(false);
+      setTimeout(() => setErrorMessage(""), 300);
+    }, 5000);
+  };
 
   // Particle animation effect (same as login page)
   useEffect(() => {
@@ -72,7 +88,10 @@ export default function AnimatedSignUp() {
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (errorTimeout.current) clearTimeout(errorTimeout.current);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -81,41 +100,103 @@ export default function AnimatedSignUp() {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (showError) {
+      setShowError(false);
+      setErrorMessage("");
+    }
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match");
-    return;
-  }
+    // 1️⃣ Validate Name (minimum 3 characters)
+    if (formData.name.trim().length < 3) {
+      showErrorMessage("Please enter your full name (at least 3 characters)");
+      return;
+    }
 
-  const res = await fetch("/api/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-    }),
-  });
+    // 2️⃣ Email Domain Validation - Must be @gmail.com
+    if (!formData.email.endsWith("@gmail.com")) {
+      showErrorMessage("Please use a valid Gmail address (must end with @gmail.com)");
+      return;
+    }
 
-  const data = await res.json();
+    // 3️⃣ Phone Number Validation - Trusted person's phone number (10 digits)
+    if (formData.phone && !/^[0-9]{10}$/.test(formData.phone)) {
+      showErrorMessage("Trusted person's phone number must be exactly 10 digits");
+      return;
+    }
 
-  if (!res.ok) {
-    alert(data.message);
-  } else {
-    alert("Registration successful 🎉");
-    window.location.href = "/SignInpage";
-  }
-};
+    // 4️⃣ Password Strength Validation
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      showErrorMessage(
+        "Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character (@$!%*?&)"
+      );
+      return;
+    }
+
+    // 5️⃣ Confirm Password Match
+    if (formData.password !== formData.confirmPassword) {
+      showErrorMessage("Passwords do not match. Please try again.");
+      return;
+    }
+
+    // Proceed with registration
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showErrorMessage(data.message || "Registration failed. Please try again.");
+      } else {
+        alert("Registration successful 🎉");
+        window.location.href = "/SignInpage";
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      showErrorMessage("Network error. Please check your connection and try again.");
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-gray-900 overflow-hidden">
+      {/* Error Toast Notification */}
+      {showError && errorMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -100, x: "-50%" }}
+          animate={{ opacity: 1, y: 20, x: "-50%" }}
+          exit={{ opacity: 0, y: -100, x: "-50%" }}
+          className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transform"
+        >
+          <div className="flex items-start gap-3 rounded-xl border border-red-400 bg-red-500/90 px-4 py-3 shadow-lg backdrop-blur-md">
+            <div className="p-1 bg-red-600 rounded-full">
+              <AlertCircle className="w-5 h-5 text-white" />
+            </div>
+            <p className="text-sm text-white flex-1">{errorMessage}</p>
+            <button
+              onClick={() => setShowError(false)}
+              className="p-1 hover:bg-red-600 rounded-lg transition-colors"
+            >
+              <EyeOff className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Canvas background */}
       <canvas
         ref={canvasRef}
@@ -124,12 +205,12 @@ export default function AnimatedSignUp() {
       />
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 sm:py-12">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20"
+          className="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-lg sm:p-8"
         >
           <div className="text-center mb-8">
             <motion.div
@@ -145,7 +226,7 @@ export default function AnimatedSignUp() {
             >
               <User className="w-8 h-8 text-white" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
+            <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Create Account</h2>
             <p className="text-white/60">Join us to start your journey</p>
           </div>
 
@@ -153,7 +234,7 @@ export default function AnimatedSignUp() {
             {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Full Name
+                Full Name <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -169,12 +250,13 @@ export default function AnimatedSignUp() {
                   required
                 />
               </div>
+              <p className="text-xs text-white/40 mt-1">Minimum 3 characters</p>
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Email Address
+                Email Address <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -186,16 +268,17 @@ export default function AnimatedSignUp() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4
                            text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500
                            transition-colors"
-                  placeholder="Enter your email"
+                  placeholder="yourname@gmail.com"
                   required
                 />
               </div>
+              <p className="text-xs text-white/40 mt-1">Must be a valid Gmail address (@gmail.com)</p>
             </div>
 
-            {/* Phone Number (Optional) */}
+            {/* Trusted Person's Phone Number */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Phone Number <span className="text-white/40">(optional)</span>
+                Trusted Person&apos;s Phone Number <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -207,15 +290,19 @@ export default function AnimatedSignUp() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4
                            text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500
                            transition-colors"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter trusted person's 10-digit phone number"
+                  required
                 />
               </div>
+              <p className="text-xs text-white/40 mt-1">
+                This person will be contacted in case of emergency. Must be exactly 10 digits.
+              </p>
             </div>
 
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Password
+                Password <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -227,7 +314,7 @@ export default function AnimatedSignUp() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-12
                            text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500
                            transition-colors"
-                  placeholder="Create a password"
+                  placeholder="Create a strong password"
                   required
                 />
                 <button
@@ -243,7 +330,7 @@ export default function AnimatedSignUp() {
             {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-2">
-                Confirm Password
+                Confirm Password <span className="text-purple-400">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -266,6 +353,29 @@ export default function AnimatedSignUp() {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+            </div>
+
+            {/* Password Requirements */}
+            <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+              <p className="text-xs font-semibold text-white/60 mb-2">Password Requirements:</p>
+              <ul className="text-xs text-white/40 space-y-1">
+                <li className={`flex items-center gap-2 ${formData.password.length >= 8 ? 'text-green-400' : ''}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  At least 8 characters
+                </li>
+                <li className={`flex items-center gap-2 ${/[A-Z]/.test(formData.password) ? 'text-green-400' : ''}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  At least one uppercase letter
+                </li>
+                <li className={`flex items-center gap-2 ${/\d/.test(formData.password) ? 'text-green-400' : ''}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  At least one number
+                </li>
+                <li className={`flex items-center gap-2 ${/[@$!%*?&]/.test(formData.password) ? 'text-green-400' : ''}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  At least one special character (@$!%*?&)
+                </li>
+              </ul>
             </div>
 
             {/* Terms and Conditions */}
@@ -294,7 +404,7 @@ export default function AnimatedSignUp() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg
-                       font-semibold mt-6"
+                       font-semibold mt-6 hover:shadow-lg transition-all"
             >
               Sign Up
             </motion.button>
@@ -307,17 +417,6 @@ export default function AnimatedSignUp() {
               </a>
             </p>
           </form>
-
-          {/* Password Requirements (optional helper text) */}
-          <div className="mt-4 text-xs text-white/40">
-            <p>Password must contain:</p>
-            <ul className="list-disc list-inside mt-1 space-y-1">
-              <li>At least 8 characters</li>
-              <li>At least one uppercase letter</li>
-              <li>At least one number</li>
-              <li>At least one special character</li>
-            </ul>
-          </div>
         </motion.div>
       </div>
     </div>
