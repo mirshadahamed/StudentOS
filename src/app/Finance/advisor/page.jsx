@@ -7,6 +7,7 @@ import {
   ArrowLeft, BrainCircuit, Sparkles, TrendingUp, 
   ShieldAlert, Loader2, ArrowRight, Target, Activity, MapPin, Building, ShieldCheck
 } from 'lucide-react';
+import { withFinanceUserBody } from '../apiClient';
 
 export default function AIAdvisorPage() {
   const [amount, setAmount] = useState('');
@@ -40,10 +41,10 @@ export default function AIAdvisorPage() {
     setAdviceOptions(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/advisor', {
+      const res = await fetch('/api/finance/advisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: parseFloat(amount) })
+        body: JSON.stringify(withFinanceUserBody({ amount: parseFloat(amount) }))
       });
 
       if (!res.ok) throw new Error("Failed to connect to AI Core");

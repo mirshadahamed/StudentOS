@@ -13,8 +13,9 @@ import {
   PieChart, Pie, Legend
 } from 'recharts';
 
-import MoneyRain from '../../components/MoneyRain';
-import WealthCity from '../../components/WealthCity';
+import MoneyRain from '../../../components/MoneyRain';
+import WealthCity from '../../../components/WealthCity';
+import { withFinanceUserId } from './apiClient';
 
 // --- 💎 INNOVATIVE CATEGORY CARD (TOP GRID) ---
 const ModuleCard = ({ title, description, icon: Icon, link, color, delay }) => (
@@ -154,9 +155,9 @@ export default function FinanceHub() {
     const fetchAllData = async () => {
       try {
         const [txRes, saveRes, splitRes] = await Promise.all([
-          fetch('http://localhost:5000/api/transactions'),
-          fetch('http://localhost:5000/api/savings'),
-          fetch('http://localhost:5000/api/splits')
+          fetch(withFinanceUserId('/api/finance/transactions')),
+          fetch(withFinanceUserId('/api/finance/savings')),
+          fetch(withFinanceUserId('/api/finance/splits'))
         ]);
 
         const txData = await txRes.json();

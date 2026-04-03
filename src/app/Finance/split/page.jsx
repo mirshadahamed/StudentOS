@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Users, Plus, Trash2, Send, Receipt, SplitSquareHorizontal, AlertCircle } from 'lucide-react';
+import { withFinanceUserBody, withFinanceUserId } from '../apiClient';
 
 export default function SplitBillPage() {
   const [splits, setSplits] = useState([]);
@@ -26,7 +27,7 @@ export default function SplitBillPage() {
 
   const fetchSplits = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/splits');
+      const res = await fetch(withFinanceUserId('/api/finance/splits'));
       const data = await res.json();
       setSplits(data);
     } catch (error) { console.error("Failed to fetch splits"); }
@@ -124,15 +125,15 @@ export default function SplitBillPage() {
     }
 
     try {
-      await fetch('http://localhost:5000/api/splits', {
+      await fetch('/api/finance/splits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(withFinanceUserBody({
           title,
           total_amount: parseFloat(totalAmount),
           payer,
           members: membersData
-        })
+        }))
       });
 
       setTitle(''); setTotalAmount(''); setPayer('Me'); 

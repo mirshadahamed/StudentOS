@@ -8,7 +8,8 @@ import {
   CheckCircle2, Clock, X, Bell, AlertTriangle, Search,
   Edit2, Trash2, Zap, AlertOctagon, MessageCircle
 } from 'lucide-react';
-import ExpenseRain from '../../../components/ExpenseRain';
+import ExpenseRain from '../../../../components/ExpenseRain';
+import { withFinanceUserBody, withFinanceUserId } from '../apiClient';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
@@ -38,8 +39,8 @@ export default function ExpensesPage() {
   const fetchExpenses = async () => {
     try {
       const [txRes, streakRes] = await Promise.all([
-        fetch('http://localhost:5000/api/transactions'),
-        fetch('http://localhost:5000/api/streak') 
+        fetch(withFinanceUserId('/api/finance/transactions')),
+        fetch(withFinanceUserId('/api/finance/streak')) 
       ]);
       
       const data = await txRes.json();
@@ -93,16 +94,16 @@ export default function ExpensesPage() {
 
     try {
       if (editingId) {
-        await fetch(`http://localhost:5000/api/transactions/${editingId}`, {
+        await fetch(withFinanceUserId(`/api/finance/transactions/${editingId}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(withFinanceUserBody(payload)),
         });
       } else {
-        await fetch('http://localhost:5000/api/transactions', {
+        await fetch('/api/finance/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(withFinanceUserBody(payload)),
         });
       }
 
@@ -136,7 +137,7 @@ export default function ExpensesPage() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this bill permanently?")) return;
     try {
-      await fetch(`http://localhost:5000/api/transactions/${id}`, { method: 'DELETE' });
+      await fetch(withFinanceUserId(`/api/finance/transactions/${id}`), { method: 'DELETE' });
       fetchExpenses();
     } catch (err) { console.error(err); }
   };
@@ -559,10 +560,10 @@ export default function ExpensesPage() {
                 <button 
                   onClick={async () => {
                     if(!wizardInput.title || !wizardInput.amount) return;
-                    await fetch('http://localhost:5000/api/transactions', {
+                    await fetch('/api/finance/transactions', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ title: wizardInput.title, amount: parseFloat(wizardInput.amount), type: 'expense', category: wizardCategories[wizardStep], status: 'completed' }),
+                      body: JSON.stringify(withFinanceUserBody({ title: wizardInput.title, amount: parseFloat(wizardInput.amount), type: 'expense', category: wizardCategories[wizardStep], status: 'completed' })),
                     });
                     await fetchExpenses();
                     setWizardInput({title: '', amount: ''});

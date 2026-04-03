@@ -8,7 +8,8 @@ import {
   ArrowUpRight, X, Search, Edit2, Trash2, 
   TrendingUp, Award, Zap
 } from 'lucide-react';
-import MoneyRain from '../../../components/MoneyRain'; 
+import MoneyRain from '../../../../components/MoneyRain'; 
+import { withFinanceUserBody, withFinanceUserId } from '../apiClient';
 
 export default function IncomePage() {
   const [transactions, setTransactions] = useState([]);
@@ -27,7 +28,7 @@ export default function IncomePage() {
   // 1. Fetch Data
   const fetchIncome = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/transactions');
+      const res = await fetch(withFinanceUserId('/api/finance/transactions'));
       const data = await res.json();
       const incomeOnly = data.filter(t => t.type === 'income');
       setTransactions(incomeOnly);
@@ -65,17 +66,17 @@ export default function IncomePage() {
     try {
       if (editingId) {
         // UPDATE Existing
-        await fetch(`http://localhost:5000/api/transactions/${editingId}`, {
+        await fetch(withFinanceUserId(`/api/finance/transactions/${editingId}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(withFinanceUserBody(payload)),
         });
       } else {
         // CREATE New
-        await fetch('http://localhost:5000/api/transactions', {
+        await fetch('/api/finance/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(withFinanceUserBody(payload)),
         });
       }
 
@@ -103,7 +104,7 @@ export default function IncomePage() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this income record?")) return;
     try {
-      await fetch(`http://localhost:5000/api/transactions/${id}`, { method: 'DELETE' });
+      await fetch(withFinanceUserId(`/api/finance/transactions/${id}`), { method: 'DELETE' });
       fetchIncome();
     } catch (err) { console.error(err); }
   };

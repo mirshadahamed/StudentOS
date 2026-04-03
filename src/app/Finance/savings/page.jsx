@@ -7,6 +7,7 @@ import {
   ArrowLeft, PiggyBank, Plus, Target, 
   Trophy, X, Calendar, Sparkles, TrendingUp
 } from 'lucide-react';
+import { withFinanceUserBody, withFinanceUserId } from '../apiClient';
 
 export default function SavingsPage() {
   const [savings, setSavings] = useState([]);
@@ -27,7 +28,7 @@ export default function SavingsPage() {
   // 1. Fetch Data
   const fetchSavings = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/savings');
+      const res = await fetch(withFinanceUserId('/api/finance/savings'));
       const data = await res.json();
       setSavings(data);
       setLoading(false);
@@ -44,16 +45,16 @@ export default function SavingsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await fetch('http://localhost:5000/api/savings', {
+      await fetch('/api/finance/savings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(withFinanceUserBody({
           name: formData.name,
           target: parseFloat(formData.target),
           current: parseFloat(formData.current || 0),
           color: formData.color,
           deadline: formData.deadline
-        }),
+        })),
       });
       await fetchSavings();
       setIsModalOpen(false);
@@ -68,10 +69,10 @@ export default function SavingsPage() {
     setIsSubmitting(true);
     
     try {
-      await fetch(`http://localhost:5000/api/savings/${selectedJar.id}`, {
+      await fetch(withFinanceUserId(`/api/finance/savings/${selectedJar.id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amountToAdd: parseFloat(addAmount) })
+        body: JSON.stringify(withFinanceUserBody({ amountToAdd: parseFloat(addAmount) }))
       });
       await fetchSavings();
       setIsAddFundsOpen(false);

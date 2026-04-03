@@ -8,9 +8,17 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, PieChart as Rechart
 // 👇 FIXED IMPORTS: We import autoTable as its own function now!
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { withFinanceUserId } from '../apiClient';
 
 export default function ReportsPage() {
-  const [transactions, setTransactions] = useState([]);
+  const [report, setReport] = useState({
+    transactions: [],
+    totalIncome: 0,
+    totalExpense: 0,
+    netBalance: 0,
+    barChartData: [],
+    categoryData: [],
+  });
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -18,9 +26,16 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/transactions');
+        const res = await fetch(withFinanceUserId('/api/finance/reports'));
         const data = await res.json();
-        setTransactions(data);
+        setReport({
+          transactions: data.transactions || [],
+          totalIncome: data.totalIncome || 0,
+          totalExpense: data.totalExpense || 0,
+          netBalance: data.netBalance || 0,
+          barChartData: data.barChartData || [],
+          categoryData: data.categoryData || [],
+        });
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch reports data", error);
@@ -31,27 +46,14 @@ export default function ReportsPage() {
   }, []);
 
   // 2. Process Data for Totals
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-  const netBalance = totalIncome - totalExpense;
-
-  // 3. Process Data for Bar Chart
-  const barChartData = [
-    { name: 'Income', amount: totalIncome, fill: '#10b981' },
-    { name: 'Expenses', amount: totalExpense, fill: '#ef4444' }
-  ];
-
-  // 4. Process Data for Pie Chart
-  const expenses = transactions.filter(t => t.type === 'expense');
-  const categoryData = expenses.reduce((acc, curr) => {
-    const existing = acc.find(item => item.name === curr.category);
-    if (existing) {
-      existing.value += curr.amount;
-    } else {
-      acc.push({ name: curr.category || 'Other', value: curr.amount });
-    }
-    return acc;
-  }, []);
+  const {
+    transactions,
+    totalIncome,
+    totalExpense,
+    netBalance,
+    barChartData,
+    categoryData,
+  } = report;
 
   const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
 
