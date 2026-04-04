@@ -2,9 +2,16 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
+<<<<<<< HEAD
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+=======
+    "baseUrl": ".",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+>>>>>>> productivity-task
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -19,16 +26,31 @@
       }
     ],
     "paths": {
+<<<<<<< HEAD
       "@/*": ["./*"]
+=======
+      "@/*": ["./src/*"]
+>>>>>>> productivity-task
     }
   },
   "include": [
     "next-env.d.ts",
+<<<<<<< HEAD
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
 , "app/finance/page.jsx", "app/api/Finance/route.js", "app/layout.jsx", "app/page.jsx"  ],
+=======
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+>>>>>>> productivity-task
   "exclude": ["node_modules"]
 }
