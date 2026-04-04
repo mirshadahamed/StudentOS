@@ -88,6 +88,10 @@ export default function AnimatedLogin() {
       if (!res.ok) {
         alert(data.message);
       } else {
+        if (data?.user?.id) {
+          localStorage.setItem("student_user_id", data.user.id);
+          localStorage.setItem("student_user_email", data.user.email || "");
+        }
         alert("Login successful 🎉");
         window.location.href = "/"; // Redirect after login
       }
@@ -107,12 +111,12 @@ export default function AnimatedLogin() {
       />
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 sm:py-12">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20"
+          className="w-full max-w-md rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-lg sm:p-8"
         >
           <div className="text-center mb-8">
             <motion.div
@@ -123,7 +127,7 @@ export default function AnimatedLogin() {
               <LogIn className="w-8 h-8 text-white" />
             </motion.div>
 
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
               Welcome Back
             </h2>
             <p className="text-white/60">
