@@ -35,11 +35,16 @@ import {
   ArrowLeft,
   Award,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Home,
+  Menu,
+  BarChart3,
+  AlertTriangle,
+  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// Enhanced activities data with images and rich content
+// ─── Enhanced Activities Data ──────────────────────────────────────────────
 const activitiesData = [
   {
     id: "1",
@@ -86,11 +91,10 @@ const activitiesData = [
     color: "from-[#F97316] to-[#EA580C]",
     bgColor: "bg-[#F97316]/10",
     benefits: ["Boosts mood", "Increases optimism", "Improves sleep", "Builds resilience"],
-    prompts: [
+    conversationStarters: [
       "What made you smile today?",
       "Who are you grateful to have in your life?",
-      "What's something good that happened this week?",
-      "What's a simple pleasure you enjoyed today?"
+      "What's something good that happened this week?"
     ]
   },
   {
@@ -112,7 +116,7 @@ const activitiesData = [
     id: "4",
     title: "Push-up Challenge",
     description: "Build strength with guided push-ups",
-    longDescription: "A quick strength-building workout that you can do anywhere. Perfect for releasing pent-up energy and building upper body strength.",
+    longDescription: "A quick strength-building workout that you can do anywhere. Perfect for releasing pent-up energy.",
     duration: 5,
     category: "physical",
     moodTags: ["energetic", "stressed", "angry"],
@@ -121,25 +125,19 @@ const activitiesData = [
     thumbnail: "https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-[#F87171] to-[#EF4444]",
     bgColor: "bg-[#F87171]/10",
-    benefits: ["Builds upper body strength", "Releases tension", "Boosts confidence", "Improves posture"],
+    benefits: ["Builds upper body strength", "Releases tension", "Boosts confidence"],
     sets: [
       { count: 5, rest: 15 },
       { count: 8, rest: 15 },
       { count: 5, rest: 15 },
       { count: 5, rest: 0 }
-    ],
-    instructions: [
-      "Keep your back straight",
-      "Lower until chest nearly touches floor",
-      "Push up with controlled motion",
-      "Breathe out when pushing up"
     ]
   },
   {
     id: "5",
     title: "Call a Friend",
     description: "Connect with someone you trust",
-    longDescription: "Social connection is vital for emotional health. Reach out to someone who makes you feel understood and supported.",
+    longDescription: "Social connection is vital for emotional health. Reach out to someone who makes you feel understood.",
     duration: 15,
     category: "social",
     moodTags: ["lonely", "sad", "isolated"],
@@ -152,15 +150,14 @@ const activitiesData = [
     conversationStarters: [
       "What's been the highlight of your week?",
       "I've been thinking about you and wanted to catch up",
-      "What's something fun you've done recently?",
-      "I could use some cheering up - tell me something funny"
+      "What's something fun you've done recently?"
     ]
   },
   {
     id: "6",
     title: "Creative Drawing",
     description: "Express your feelings through art",
-    longDescription: "You don't need to be an artist to benefit from creative expression. Let your emotions guide your hand and see what emerges.",
+    longDescription: "You don't need to be an artist to benefit from creative expression. Let your emotions guide your hand.",
     duration: 20,
     category: "creative",
     moodTags: ["creative", "reflective", "calm"],
@@ -169,13 +166,7 @@ const activitiesData = [
     thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-[#F97316] to-[#EA580C]",
     bgColor: "bg-[#F97316]/10",
-    benefits: ["Reduces stress", "Processes emotions", "Increases mindfulness", "Boosts creativity"],
-    ideas: [
-      "Draw your current emotion as an abstract shape",
-      "Create a gratitude doodle",
-      "Sketch something in your environment",
-      "Draw your safe place"
-    ]
+    benefits: ["Reduces stress", "Processes emotions", "Increases mindfulness", "Boosts creativity"]
   },
   {
     id: "7",
@@ -205,7 +196,7 @@ const activitiesData = [
     thumbnail: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     color: "from-[#38BDF8] to-[#0EA5E9]",
     bgColor: "bg-[#38BDF8]/10",
-    benefits: ["Reduces physical tension", "Lowers anxiety", "Improves sleep", "Increases body awareness"]
+    benefits: ["Reduces physical tension", "Lowers anxiety", "Improves sleep"]
   },
   {
     id: "9",
@@ -226,7 +217,7 @@ const activitiesData = [
     id: "10",
     title: "Jumping Jacks",
     description: "Get your heart rate up with jumping jacks",
-    longDescription: "A quick cardio burst to energize your body and clear your mind. Great for when you need to shake off stress or wake up.",
+    longDescription: "A quick cardio burst to energize your body and clear your mind. Great for when you need to shake off stress.",
     duration: 3,
     category: "physical",
     moodTags: ["sluggish", "tired", "stressed"],
@@ -244,19 +235,18 @@ const activitiesData = [
   }
 ];
 
-// Mood definitions with colors and images (soft tones)
+// ─── Mood Definitions ──────────────────────────────────────────────────────
 const moods = [
-  { id: "anxious", name: "Anxious", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", image: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "stressed", name: "Stressed", icon: Zap, color: "text-[#F87171]", bgColor: "bg-[#F87171]/20", lightBg: "bg-[#F87171]/10", gradient: "from-[#F87171] to-[#EF4444]", image: "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "sad", name: "Sad", icon: Frown, color: "text-[#60A5FA]", bgColor: "bg-[#60A5FA]/20", lightBg: "bg-[#60A5FA]/10", gradient: "from-[#60A5FA] to-[#3B82F6]", image: "https://images.unsplash.com/photo-1486633632054-d732792b5cb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "tired", name: "Tired", icon: Moon, color: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/20", lightBg: "bg-[#A78BFA]/10", gradient: "from-[#A78BFA] to-[#8B5CF6]", image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "lonely", name: "Lonely", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "calm", name: "Calm", icon: Sun, color: "text-[#34D399]", bgColor: "bg-[#34D399]/20", lightBg: "bg-[#34D399]/10", gradient: "from-[#34D399] to-[#10B981]", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "happy", name: "Happy", icon: Smile, color: "text-[#4ADE80]", bgColor: "bg-[#4ADE80]/20", lightBg: "bg-[#4ADE80]/10", gradient: "from-[#4ADE80] to-[#22C55E]", image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-  { id: "overwhelmed", name: "Overwhelmed", icon: CloudRain, color: "text-[#6B7280]", bgColor: "bg-[#6B7280]/20", lightBg: "bg-[#6B7280]/10", gradient: "from-[#6B7280] to-[#4B5563]", image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
+  { id: "anxious", name: "Anxious", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", hue: "199", image: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "stressed", name: "Stressed", icon: Zap, color: "text-[#F87171]", bgColor: "bg-[#F87171]/20", lightBg: "bg-[#F87171]/10", gradient: "from-[#F87171] to-[#EF4444]", hue: "0", image: "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "sad", name: "Sad", icon: Frown, color: "text-[#60A5FA]", bgColor: "bg-[#60A5FA]/20", lightBg: "bg-[#60A5FA]/10", gradient: "from-[#60A5FA] to-[#3B82F6]", hue: "215", image: "https://images.unsplash.com/photo-1486633632054-d732792b5cb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "tired", name: "Tired", icon: Moon, color: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/20", lightBg: "bg-[#A78BFA]/10", gradient: "from-[#A78BFA] to-[#8B5CF6]", hue: "265", image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "lonely", name: "Lonely", icon: Cloud, color: "text-[#38BDF8]", bgColor: "bg-[#38BDF8]/20", lightBg: "bg-[#38BDF8]/10", gradient: "from-[#38BDF8] to-[#0EA5E9]", hue: "199", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "calm", name: "Calm", icon: Sun, color: "text-[#34D399]", bgColor: "bg-[#34D399]/20", lightBg: "bg-[#34D399]/10", gradient: "from-[#34D399] to-[#10B981]", hue: "160", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "happy", name: "Happy", icon: Smile, color: "text-[#4ADE80]", bgColor: "bg-[#4ADE80]/20", lightBg: "bg-[#4ADE80]/10", gradient: "from-[#4ADE80] to-[#22C55E]", hue: "142", image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+  { id: "overwhelmed", name: "Overwhelmed", icon: CloudRain, color: "text-[#6B7280]", bgColor: "bg-[#6B7280]/20", lightBg: "bg-[#6B7280]/10", gradient: "from-[#6B7280] to-[#4B5563]", hue: "220", image: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
 ];
 
-// Categories with icons
 const categories = [
   { id: "all", name: "All Activities", icon: Activity },
   { id: "mindfulness", name: "Mindfulness", icon: Wind },
@@ -266,7 +256,6 @@ const categories = [
   { id: "relaxation", name: "Relaxation", icon: Coffee }
 ];
 
-// Durations for filter
 const durations = [
   { id: "any", name: "Any Duration" },
   { id: "5", name: "5-10 min" },
@@ -274,100 +263,115 @@ const durations = [
   { id: "30", name: "30+ min" }
 ];
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
+// ─── Glassmorphism Card ────────────────────────────────────────────────────
+const GlassCard = ({
+  children,
+  className = "",
+  glow = false,
+}) => (
+  <div
+    className={`
+      relative rounded-3xl overflow-hidden
+      bg-white/[0.04] backdrop-blur-xl
+      border border-white/[0.08]
+      ${glow ? "shadow-[0_0_60px_-10px_rgba(34,197,94,0.25)]" : "shadow-[0_8px_32px_rgba(0,0,0,0.3)]"}
+      ${className}
+    `}
+  >
+    {children}
+  </div>
+);
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 12
-    }
-  }
-};
-
-// Breathing Animation Component
-const BreathingAnimation = ({ isActive, isPaused, phase }) => {
+// ─── Ambient Background ────────────────────────────────────────────────────
+const AmbientBackground = ({ moodId }) => {
+  const mood = moods.find(m => m.id === moodId);
+  const hue = mood?.hue ?? "142";
   return (
-    <div className="relative w-64 h-64 mx-auto">
-      <Image
-        src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-        alt="Breathing exercise"
-        width={256}
-        height={256}
-        className="rounded-2xl object-cover"
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#060d17]">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#060d17] via-[#0a1628] to-[#04080f]" />
+      <motion.div
+        key={hue}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.18, 0.28, 0.18] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, hsl(${hue} 80% 55% / 0.35) 0%, transparent 70%)`,
+        }}
       />
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.2, 0.12] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(215 80% 55% / 0.2) 0%, transparent 70%)" }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#060d17_100%)]" />
+    </div>
+  );
+};
+
+// ─── Breathing Animation ───────────────────────────────────────────────────
+const BreathingAnimation = ({ isActive, isPaused, phase }) => (
+  <div className="relative w-64 h-64 mx-auto">
+    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#38BDF8]/20 to-[#0EA5E9]/20 flex items-center justify-center">
       <motion.div
         animate={{
           scale: isActive && !isPaused 
-            ? phase === "inhale" ? 1.2
-              : phase === "exhale" ? 0.8
+            ? phase === "inhale" ? 1.3
+              : phase === "exhale" ? 0.7
               : 1
             : 1
         }}
         transition={{ duration: phase === "inhale" ? 4 : phase === "exhale" ? 6 : 4, ease: "easeInOut" }}
-        className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
+        className="w-32 h-32 rounded-full bg-[#22C55E]/30 flex items-center justify-center"
       >
-        <div className="text-white font-bold text-2xl bg-black/50 px-4 py-2 rounded-full">
-          {phase === "inhale" ? "🌬️ Inhale" : phase === "exhale" ? "😮‍💨 Exhale" : "Hold"}
+        <div className="text-white font-bold text-lg bg-black/50 px-3 py-1.5 rounded-full">
+          {phase === "inhale" ? "🌬️" : phase === "exhale" ? "😮‍💨" : "⏸️"}
         </div>
       </motion.div>
     </div>
-  );
-};
+    <p className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 text-sm capitalize whitespace-nowrap">
+      {phase}
+    </p>
+  </div>
+);
 
-// Push-up Animation Component
-const PushupAnimation = ({ isActive, isPaused, currentSet, currentCount, totalSets }) => {
-  return (
-    <div className="relative w-64 h-64 mx-auto">
-      <Image
-        src="https://images.unsplash.com/photo-1598971639058-999900a4427c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-        alt="Push-up exercise"
-        width={256}
-        height={256}
-        className="rounded-2xl object-cover"
-      />
+// ─── Push-up Animation ─────────────────────────────────────────────────────
+const PushupAnimation = ({ isActive, isPaused, currentSet, currentCount, totalSets }) => (
+  <div className="relative w-64 h-64 mx-auto">
+    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F87171]/20 to-[#EF4444]/20 flex items-center justify-center">
       <motion.div
         animate={{
-          y: isActive && !isPaused ? [0, 20, 0] : 0
+          y: isActive && !isPaused ? [0, 30, 0] : 0
         }}
-        transition={{
-          duration: 1.5,
-          repeat: isActive && !isPaused ? Infinity : 0,
-          ease: "easeInOut"
-        }}
-        className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
+        transition={{ duration: 1.5, repeat: isActive && !isPaused ? Infinity : 0, ease: "easeInOut" }}
+        className="w-32 h-32 rounded-full bg-[#22C55E]/30 flex items-center justify-center"
       >
-        <div className="text-white font-bold text-xl bg-black/50 px-4 py-2 rounded-full">
-          {currentCount} reps
+        <div className="text-white font-bold text-xl bg-black/50 px-3 py-1.5 rounded-full">
+          {currentCount}
         </div>
       </motion.div>
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-        <div className="text-sm text-[#9CA3AF]">
-          Set {currentSet + 1} of {totalSets}
-        </div>
+    </div>
+    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center whitespace-nowrap">
+      <div className="text-white/60 text-sm">
+        Set {currentSet + 1} of {totalSets}
       </div>
     </div>
-  );
-};
+  </div>
+);
 
+// ─── Main Component ────────────────────────────────────────────────────────
 export default function ActivitiesPage() {
   const router = useRouter();
   const [selectedMood, setSelectedMood] = useState("");
-  const [activities, setActivities] = useState(activitiesData);
+  const [activities] = useState(activitiesData);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDuration, setSelectedDuration] = useState("any");
   const [searchQuery, setSearchQuery] = useState("");
@@ -382,7 +386,9 @@ export default function ActivitiesPage() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [hoveredActivity, setHoveredActivity] = useState(null);
   const [breathingPhase, setBreathingPhase] = useState("inhale");
-  const [showQuickStart, setShowQuickStart] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showError, setShowError] = useState(false);
 
   const filteredActivities = useMemo(() => {
     let filtered = [...activities];
@@ -418,7 +424,7 @@ export default function ActivitiesPage() {
     return filtered;
   }, [activities, selectedMood, selectedCategory, selectedDuration, searchQuery]);
 
-  // Timer effect for activity
+  // Timer effect
   useEffect(() => {
     let interval;
     let phaseInterval;
@@ -472,10 +478,8 @@ export default function ActivitiesPage() {
     }
   };
 
-  const pauseActivity = () => {
-    setIsPaused(!isPaused);
-  };
-
+  const pauseActivity = () => setIsPaused(!isPaused);
+  
   const resetActivity = () => {
     setIsActive(false);
     setSelectedActivity(null);
@@ -489,18 +493,37 @@ export default function ActivitiesPage() {
     if (!selectedMood) return null;
     const moodActivities = activities.filter(a => a.moodTags.includes(selectedMood));
     const moodName = moods.find(m => m.id === selectedMood)?.name;
-    const moodColor = moods.find(m => m.id === selectedMood)?.gradient;
+    const moodGradient = moods.find(m => m.id === selectedMood)?.gradient;
     return {
       mood: moodName,
-      color: moodColor,
+      gradient: moodGradient,
       count: moodActivities.length,
       activities: moodActivities.slice(0, 3)
     };
   };
 
   const suggestion = getMoodSuggestion();
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  };
 
-  // Render activity animation based on type
+  // Close mobile menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isMobileMenuOpen && !e.target.closest(".mobile-menu-container"))
+        setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isMobileMenuOpen]);
+
+  const showErrorMsg = (msg) => {
+    setErrorMessage(msg);
+    setShowError(true);
+    setTimeout(() => setShowError(false), 4000);
+  };
+
   const renderActivityAnimation = () => {
     if (!selectedActivity) return null;
 
@@ -526,27 +549,18 @@ export default function ActivitiesPage() {
       default:
         return (
           <div className="relative w-64 h-64 mx-auto">
-            <Image
-              src={selectedActivity.image}
-              alt={selectedActivity.title}
-              width={256}
-              height={256}
-              className="rounded-2xl object-cover"
-            />
-            <motion.div
-              animate={{
-                rotate: isActive && !isPaused ? 360 : 0,
-              }}
-              transition={{
-                duration: 2,
-                repeat: isActive && !isPaused ? Infinity : 0,
-                ease: "linear"
-              }}
-              className="absolute inset-0 bg-[#22C55E]/30 rounded-2xl flex items-center justify-center"
-            >
-              <Timer className="w-16 h-16 text-white" />
-            </motion.div>
-            <p className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white font-bold text-xl bg-black/50 px-4 py-2 rounded-full">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+              <motion.div
+                animate={{
+                  rotate: isActive && !isPaused ? 360 : 0,
+                }}
+                transition={{ duration: 2, repeat: isActive && !isPaused ? Infinity : 0, ease: "linear" }}
+                className="w-32 h-32 rounded-full bg-[#22C55E]/30 flex items-center justify-center"
+              >
+                <Timer className="w-12 h-12 text-white" />
+              </motion.div>
+            </div>
+            <p className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 text-sm whitespace-nowrap">
               {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
             </p>
           </div>
@@ -555,445 +569,313 @@ export default function ActivitiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A]">
-      {/* Header */}
-      <div className="bg-[#111827] border-b border-[#374151] sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3 sm:items-center">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => router.back()}
-                className="p-2 hover:bg-[#1F2937] rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-[#E5E7EB]" />
-              </motion.button>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-lg shadow-lg">
-                  <Activity className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-[#E5E7EB] sm:text-2xl">
-                  {selectedActivity ? selectedActivity.title : "Wellness Activities"}
-                </h1>
-              </div>
+    <div className="relative min-h-screen font-[system-ui] text-white">
+      <AmbientBackground moodId={selectedMood || null} />
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {showError && errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -80, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -80, x: "-50%" }}
+            className="fixed left-1/2 top-5 z-[60] w-[calc(100%-2rem)] max-w-sm"
+          >
+            <div className="flex items-start gap-3 bg-red-950/90 backdrop-blur-xl border border-red-700/50 rounded-2xl px-4 py-3 shadow-2xl">
+              <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-red-200 flex-1 leading-snug">{errorMessage}</p>
+              <button onClick={() => setShowError(false)} className="text-red-400 hover:text-red-200">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-4 self-end sm:self-auto">
-              {!selectedActivity && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1F2937] text-[#E5E7EB] rounded-lg hover:bg-[#374151] transition-colors lg:hidden"
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Navbar */}
+      <nav className="fixed top-0 inset-x-0 z-50">
+        <div className="mx-4 mt-4 rounded-2xl bg-white/[0.06] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center justify-between px-4 h-14">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/")}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-sm font-medium text-white/80 transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
+            </motion.button>
+
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm font-semibold text-emerald-300 hidden sm:inline">Wellness Activities</span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-1">
+              {[
+                { href: "/dashboard", icon: Home, label: "Home" },
+                { href: "/Analytics_Page", icon: BarChart3, label: "Analytics" },
+                { href: "/ActivityPage", icon: Activity, label: "Activities", active: true },
+              ].map(({ href, icon: Icon, label, active }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    active
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/20"
+                      : "text-white/50 hover:text-white/80 hover:bg-white/[0.06]"
+                  }`}
                 >
-                  <Filter className="w-5 h-5" />
-                  <span>Filters</span>
-                </motion.button>
-              )}
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="md:hidden">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70"
+              >
+                {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </motion.button>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {selectedActivity ? (
-          // Activity Detail View
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-[#1F2937] rounded-2xl shadow-xl overflow-hidden border border-[#374151]"
-          >
-            {/* Hero Image */}
-            <div className="relative h-72 sm:h-80 lg:h-96">
-              <Image
-                src={selectedActivity.image}
-                alt={selectedActivity.title}
-                fill
-                className="object-cover"
-              />
-              <div className={`absolute inset-0 bg-gradient-to-t ${selectedActivity.color} opacity-60`} />
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white sm:p-8">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-sm">
-                    {selectedActivity.category}
-                  </span>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 26, stiffness: 220 }}
+              className="mobile-menu-container fixed right-0 top-0 bottom-0 w-64 bg-[#0a1628]/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-2xl z-50 md:hidden"
+            >
+              <div className="p-5 border-b border-white/[0.08] flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-emerald-400" />
+                  <span className="font-semibold text-emerald-300">Menu</span>
                 </div>
-                <h2 className="mb-2 text-2xl font-bold sm:text-3xl lg:text-4xl">{selectedActivity.title}</h2>
-                <p className="max-w-2xl text-sm text-white/90 sm:text-lg">{selectedActivity.longDescription}</p>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/50 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-
-            <div className="p-4 sm:p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className={`${selectedActivity.bgColor} flex min-h-[280px] items-center justify-center rounded-xl p-4 sm:min-h-[400px] sm:p-8`}>
-                  {renderActivityAnimation()}
-                </div>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
-                      <Clock className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
-                      <div className="text-sm text-[#9CA3AF]">Duration</div>
-                      <div className="font-semibold text-[#E5E7EB]">{selectedActivity.duration} min</div>
+              <div className="p-4 space-y-1">
+                {[
+                  { href: "/dashboard", icon: Home, label: "Home", sub: "Your mood dashboard" },
+                  { href: "/Analytics_Page", icon: BarChart3, label: "Analytics", sub: "Track mood patterns" },
+                  { href: "/ActivityPage", icon: Activity, label: "Activities", sub: "Wellness activities" },
+                ].map(({ href, icon: Icon, label, sub }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-all group"
+                  >
+                    <div className="p-2 rounded-lg bg-white/[0.04] group-hover:bg-emerald-500/20 group-hover:text-emerald-300 text-white/50 transition-colors">
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
-                      <Heart className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
-                      <div className="text-sm text-[#9CA3AF]">Moods</div>
-                      <div className="font-semibold text-[#E5E7EB]">{selectedActivity.moodTags.length}</div>
-                    </div>
-                    <div className="text-center p-4 bg-[#111827] rounded-xl border border-[#374151]">
-                      <Award className="w-5 h-5 mx-auto mb-2 text-[#22C55E]" />
-                      <div className="text-sm text-[#9CA3AF]">Level</div>
-                      <div className="font-semibold text-[#E5E7EB]">Beginner</div>
-                    </div>
-                  </div>
-
-                  {selectedActivity.benefits && (
                     <div>
-                      <h3 className="font-semibold text-[#E5E7EB] mb-3">Benefits</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedActivity.benefits.map((benefit, i) => (
-                          <span key={i} className="px-3 py-1 bg-[#22C55E]/10 text-[#4ADE80] rounded-full text-sm border border-[#22C55E]/20">
-                            ✓ {benefit}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="text-sm font-medium text-white/80">{label}</p>
+                      <p className="text-xs text-white/40">{sub}</p>
                     </div>
-                  )}
-
-                  {selectedActivity.animation === "breathing" && isActive && (
-                    <div className="p-4 bg-[#22C55E]/10 rounded-xl border border-[#22C55E]/20">
-                      <div className="text-center">
-                        <div className="text-lg font-semibold text-[#4ADE80] mb-2 capitalize">
-                          {breathingPhase}
-                        </div>
-                        <div className="flex gap-2 justify-center">
-                          {selectedActivity.phases?.map((phase, i) => (
-                            <div
-                              key={i}
-                              className={`w-3 h-3 rounded-full ${
-                                phase.name.toLowerCase() === breathingPhase
-                                  ? phase.color
-                                  : 'bg-[#374151]'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedActivity.instructions && (
-                    <div>
-                      <button
-                        onClick={() => setShowInstructions(!showInstructions)}
-                        className="text-[#22C55E] font-semibold flex items-center gap-2"
-                      >
-                        <ChevronDown className={`w-4 h-4 transition-transform ${showInstructions ? 'rotate-180' : ''}`} />
-                        {showInstructions ? 'Hide' : 'Show'} Instructions
-                      </button>
-                      <AnimatePresence>
-                        {showInstructions && (
-                          <motion.ul
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="mt-4 space-y-2 list-disc list-inside text-[#9CA3AF]"
-                          >
-                            {selectedActivity.instructions.map((instruction, i) => (
-                              <li key={i}>{instruction}</li>
-                            ))}
-                          </motion.ul>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                  {selectedActivity.conversationStarters && (
-                    <div className="p-4 bg-[#22C55E]/10 rounded-xl border border-[#22C55E]/20">
-                      <h3 className="font-semibold text-[#4ADE80] mb-3">Conversation Starters</h3>
-                      <ul className="space-y-2">
-                        {selectedActivity.conversationStarters.map((starter, i) => (
-                          <li key={i} className="text-[#9CA3AF] text-sm">💬 {starter}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {selectedActivity.tips && (
-                    <div className="p-4 bg-[#38BDF8]/10 rounded-xl border border-[#38BDF8]/20">
-                      <h3 className="font-semibold text-[#38BDF8] mb-2">💡 Tips</h3>
-                      <ul className="space-y-1 text-sm text-[#9CA3AF]">
-                        {selectedActivity.tips.map((tip, i) => (
-                          <li key={i}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-                    {!isActive && !completed ? (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => startActivity(selectedActivity)}
-                        className="flex-1 py-3 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white rounded-xl font-semibold hover:shadow-lg"
-                      >
-                        Start Activity
-                      </motion.button>
-                    ) : (
-                      <>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={pauseActivity}
-                          className="flex-1 py-3 bg-[#22C55E] text-white rounded-xl font-semibold hover:bg-[#16A34A]"
-                        >
-                          {isPaused ? 'Resume' : 'Pause'}
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={resetActivity}
-                          className="flex-1 py-3 bg-[#374151] text-[#E5E7EB] rounded-xl font-semibold hover:bg-[#4B5563]"
-                        >
-                          Cancel
-                        </motion.button>
-                      </>
-                    )}
-                  </div>
-
-                  {completed && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-[#22C55E]/10 text-[#4ADE80] rounded-xl text-center border border-[#22C55E]/20"
-                    >
-                      <Check className="w-8 h-8 mx-auto mb-2" />
-                      <p className="font-semibold">Great job! Activity completed!</p>
-                      <p className="text-sm mt-2">You're doing amazing! 🌟</p>
-                    </motion.div>
-                  )}
-                </div>
+                  </Link>
+                ))}
               </div>
-            </div>
-          </motion.div>
-        ) : (
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <div className="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
+            {getGreeting()}{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+              Find Your Calm
+            </span>
+          </h1>
+          <p className="text-white/40 text-sm">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </p>
+          {selectedMood && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="inline-flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Filtered by: {moods.find(m => m.id === selectedMood)?.name}
+            </motion.div>
+          )}
+        </motion.div>
+
+        {!selectedActivity ? (
           // Activities Grid View
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar - Filters with images */}
-            <AnimatePresence mode="wait">
-              {(showFilters || !showFilters) && (
-                <motion.div
-                  key="filters"
-                  initial={{ x: -300, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -300, opacity: 0 }}
-                  className={`w-full lg:w-96 ${showFilters ? 'block' : 'hidden lg:block'}`}
-                >
-                  <div className="bg-[#1F2937] border border-[#374151] p-5 backdrop-blur-sm rounded-xl shadow-lg lg:sticky lg:top-24 sm:p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="font-semibold text-[#E5E7EB]">How are you feeling?</h2>
-                      {showFilters && (
-                        <motion.button 
-                          whileHover={{ rotate: 90 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => setShowFilters(false)}
-                          className="lg:hidden"
-                        >
-                          <X className="w-5 h-5 text-[#9CA3AF]" />
-                        </motion.button>
-                      )}
-                    </div>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filters Sidebar */}
+            <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+              <GlassCard className="p-5 sticky top-28">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold text-white/80 text-sm">How are you feeling?</h2>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="lg:hidden text-white/40 hover:text-white/60"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
 
-                    {/* Mood selector with images */}
-                    <div className="grid grid-cols-2 gap-3 mb-6">
-                      {moods.map((mood) => {
-                        const Icon = mood.icon;
-                        const isSelected = selectedMood === mood.id;
-                        
-                        return (
-                          <motion.button
-                            key={mood.id}
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setSelectedMood(isSelected ? "" : mood.id)}
-                            className={`
-                              relative overflow-hidden rounded-xl transition-all
-                              ${isSelected ? 'ring-2 ring-[#22C55E] ring-offset-2 ring-offset-[#1F2937]' : ''}
-                            `}
-                          >
-                            <div className="absolute inset-0">
-                              <Image
-                                src={mood.image}
-                                alt={mood.name}
-                                fill
-                                className="object-cover"
-                              />
-                              <div className={`absolute inset-0 bg-gradient-to-br ${mood.gradient} opacity-60`} />
-                            </div>
-                            <div className="relative p-3 flex items-center gap-2 text-white">
-                              <Icon className="w-4 h-4" />
-                              <span className="text-sm font-medium">{mood.name}</span>
-                            </div>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Category filter */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                        Category
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {categories.map(cat => {
-                          const Icon = cat.icon;
-                          const isSelected = selectedCategory === cat.id;
-                          return (
-                            <motion.button
-                              key={cat.id}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedCategory(cat.id)}
-                              className={`
-                                flex items-center gap-2 p-2 rounded-lg transition-all
-                                ${isSelected 
-                                  ? 'bg-[#22C55E] text-white' 
-                                  : 'bg-[#111827] text-[#9CA3AF] hover:bg-[#1F2937] border border-[#374151]'
-                                }
-                              `}
-                            >
-                              <Icon className="w-4 h-4" />
-                              <span className="text-sm">{cat.name}</span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Duration filter */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                        Duration
-                      </label>
-                      <select
-                        value={selectedDuration}
-                        onChange={(e) => setSelectedDuration(e.target.value)}
-                        className="w-full p-2 bg-[#111827] border border-[#374151] rounded-lg focus:ring-2 focus:ring-[#22C55E] focus:border-transparent text-[#E5E7EB]"
+                {/* Mood Selector */}
+                <div className="grid grid-cols-2 gap-2 mb-5">
+                  {moods.map((mood) => {
+                    const Icon = mood.icon;
+                    const isSelected = selectedMood === mood.id;
+                    return (
+                      <motion.button
+                        key={mood.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedMood(isSelected ? "" : mood.id)}
+                        className={`
+                          relative overflow-hidden rounded-xl p-3 transition-all
+                          ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-[#0a1628]' : ''}
+                          bg-white/[0.04] border border-white/[0.08]
+                        `}
                       >
-                        {durations.map(dur => (
-                          <option key={dur.id} value={dur.id}>{dur.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-4 h-4 ${mood.color}`} />
+                          <span className="text-sm text-white/70">{mood.name}</span>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
 
-                    {/* Search */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                        Search
-                      </label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Search activities..."
-                          className="w-full pl-9 pr-4 py-2 bg-[#111827] border border-[#374151] rounded-lg focus:ring-2 focus:ring-[#22C55E] focus:border-transparent text-[#E5E7EB] placeholder:text-[#6B7280]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Quick Start Toggle */}
-                    <div className="mb-6">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <span className="text-sm font-medium text-[#9CA3AF]">Quick Start Mode</span>
-                        <button
-                          onClick={() => setShowQuickStart(!showQuickStart)}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            showQuickStart ? 'bg-[#22C55E]' : 'bg-[#374151]'
+                {/* Category Filter */}
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-white/40 mb-2">Category</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {categories.map(cat => {
+                      const Icon = cat.icon;
+                      const isSelected = selectedCategory === cat.id;
+                      return (
+                        <motion.button
+                          key={cat.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedCategory(cat.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all ${
+                            isSelected 
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/20"
+                              : "bg-white/[0.04] text-white/50 hover:text-white/70 border border-white/[0.06]"
                           }`}
                         >
-                          <motion.div
-                            className="absolute top-1 w-4 h-4 bg-white rounded-full"
-                            animate={{ x: showQuickStart ? 24 : 4 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          />
-                        </button>
-                      </label>
-                    </div>
-
-                    {/* Clear filters */}
-                    {(selectedMood || selectedCategory !== "all" || selectedDuration !== "any" || searchQuery) && (
-                      <motion.button
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        onClick={() => {
-                          setSelectedMood("");
-                          setSelectedCategory("all");
-                          setSelectedDuration("any");
-                          setSearchQuery("");
-                        }}
-                        className="mt-4 text-sm text-[#22C55E] hover:text-[#4ADE80] flex items-center gap-1"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        Clear all filters
-                      </motion.button>
-                    )}
+                          <Icon className="w-3.5 h-3.5" />
+                          {cat.name}
+                        </motion.button>
+                      );
+                    })}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
 
-            {/* Main content */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex-1"
-            >
-              {/* Filter Toggle Button for Mobile */}
+                {/* Duration Filter */}
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-white/40 mb-2">Duration</label>
+                  <select
+                    value={selectedDuration}
+                    onChange={(e) => setSelectedDuration(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white/70 focus:border-emerald-500/50 outline-none transition-all"
+                  >
+                    {durations.map(dur => (
+                      <option key={dur.id} value={dur.id}>{dur.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Search */}
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-white/40 mb-2">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search activities..."
+                      className="w-full pl-9 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white/70 placeholder:text-white/25 focus:border-emerald-500/50 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                {(selectedMood || selectedCategory !== "all" || selectedDuration !== "any" || searchQuery) && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => {
+                      setSelectedMood("");
+                      setSelectedCategory("all");
+                      setSelectedDuration("any");
+                      setSearchQuery("");
+                    }}
+                    className="w-full mt-2 py-2 rounded-xl text-sm text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/10 transition-all flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Clear all filters
+                  </motion.button>
+                )}
+              </GlassCard>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1">
               <div className="lg:hidden flex justify-end mb-4">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white rounded-lg shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70 text-sm"
                 >
                   <Filter className="w-4 h-4" />
-                  <span>Filters</span>
+                  Filters
                 </motion.button>
               </div>
 
-              {/* "Feeling [mood]? Try these" section */}
+              {/* Mood Suggestion Section */}
               {suggestion && suggestion.count > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-gradient-to-r ${suggestion.color} rounded-xl p-6 text-white mb-8 shadow-xl`}
+                  className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
                 >
-                  <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                    <Sparkles className="w-6 h-6" />
+                  <h2 className="text-lg font-semibold text-white/80 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-emerald-400" />
                     Feeling {suggestion.mood}? Try these:
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     {suggestion.activities.map((activity) => (
                       <motion.div
                         key={activity.id}
-                        whileHover={{ scale: 1.05, y: -5 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => startActivity(activity)}
-                        className="bg-white/10 backdrop-blur rounded-lg p-3 cursor-pointer group"
+                        className="bg-white/[0.04] rounded-xl p-3 cursor-pointer border border-white/[0.06] hover:border-emerald-500/30 transition-all"
                       >
-                        <div className="relative h-32 rounded-lg overflow-hidden mb-2">
-                          <Image
-                            src={activity.thumbnail}
-                            alt={activity.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                        <h3 className="font-medium mb-1">{activity.title}</h3>
-                        <p className="text-sm text-white/80 flex items-center gap-1">
+                        <h3 className="font-medium text-white/80 text-sm mb-1">{activity.title}</h3>
+                        <p className="text-xs text-white/40 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {activity.duration} min
                         </p>
@@ -1003,142 +885,237 @@ export default function ActivitiesPage() {
                 </motion.div>
               )}
 
-              {/* Activities grid */}
+              {/* Activities Grid */}
               <AnimatePresence mode="wait">
                 {filteredActivities.length > 0 ? (
                   <motion.div
                     key="activities-grid"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                   >
-                    {filteredActivities.map((activity) => (
+                    {filteredActivities.map((activity, idx) => (
                       <motion.div
                         key={activity.id}
-                        variants={itemVariants}
-                        whileHover={{ y: -8, scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        whileHover={{ y: -4 }}
                         onHoverStart={() => setHoveredActivity(activity.id)}
                         onHoverEnd={() => setHoveredActivity(null)}
                         onClick={() => startActivity(activity)}
-                        className="bg-[#1F2937] rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all relative group cursor-pointer border border-[#374151] hover:border-[#22C55E]"
+                        className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer border border-white/[0.06] hover:border-emerald-500/30 transition-all group"
                       >
-                        {/* Card Image */}
-                        <div className="relative h-48 overflow-hidden">
-                          <Image
-                            src={activity.thumbnail}
-                            alt={activity.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className={`absolute inset-0 bg-gradient-to-t ${activity.color} opacity-0 group-hover:opacity-30 transition-opacity`} />
-                          
-                          {/* Category Badge */}
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-black/70 backdrop-blur text-[#E5E7EB] text-xs font-medium rounded-full shadow-lg">
+                        <div className="relative h-40 overflow-hidden">
+                          <div className={`absolute inset-0 bg-gradient-to-br ${activity.color} opacity-40 group-hover:opacity-60 transition-opacity`} />
+                          <div className="absolute bottom-3 left-3">
+                            <span className="px-2 py-1 bg-black/50 backdrop-blur text-white/80 text-xs rounded-full">
                               {activity.category}
                             </span>
                           </div>
                         </div>
-                        
-                        {/* Card Content */}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold text-[#E5E7EB] mb-2 line-clamp-1">
-                            {activity.title}
-                          </h3>
-                          
-                          <p className="text-sm text-[#9CA3AF] mb-3 line-clamp-2">
-                            {activity.description}
-                          </p>
-                          
-                          {/* Mood Tags */}
+                          <h3 className="font-semibold text-white/80 mb-1">{activity.title}</h3>
+                          <p className="text-xs text-white/40 line-clamp-2 mb-3">{activity.description}</p>
                           <div className="flex flex-wrap gap-1 mb-3">
                             {activity.moodTags.slice(0, 3).map((tag, i) => {
                               const mood = moods.find(m => m.id === tag);
                               return mood ? (
-                                <span
-                                  key={i}
-                                  className={`px-2 py-0.5 ${mood.lightBg} ${mood.color} text-xs rounded-full`}
-                                >
+                                <span key={i} className={`text-[10px] ${mood.color} bg-white/[0.04] px-2 py-0.5 rounded-full`}>
                                   {mood.name}
                                 </span>
                               ) : null;
                             })}
-                            {activity.moodTags.length > 3 && (
-                              <span className="px-2 py-0.5 bg-[#111827] text-[#6B7280] text-xs rounded-full">
-                                +{activity.moodTags.length - 3}
-                              </span>
-                            )}
                           </div>
-                          
-                          {/* Duration */}
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1 text-[#9CA3AF]">
-                              <Clock className="w-4 h-4" />
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1 text-white/40">
+                              <Clock className="w-3 h-3" />
                               {activity.duration} min
                             </span>
-                            
-                            {/* Quick Start Indicator */}
-                            {showQuickStart && (
-                              <motion.div
-                                animate={{ x: [0, 5, 0] }}
-                                transition={{ duration: 1, repeat: Infinity }}
-                                className="flex items-center gap-1 text-[#22C55E]"
-                              >
-                                <Play className="w-4 h-4" />
-                                <span className="text-xs">Quick Start</span>
-                              </motion.div>
-                            )}
+                            <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">Start →</span>
                           </div>
-
-                          {/* Hover Stats */}
-                          <AnimatePresence>
-                            {hoveredActivity === activity.id && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white rounded-b-xl"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-1">
-                                    <Heart className="w-3 h-3" />
-                                    <span className="text-xs">{activity.benefits?.length || 0} benefits</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3" />
-                                    <span className="text-xs">Beginner</span>
-                                  </div>
-                                </div>
-                                <p className="text-xs mt-1 opacity-90">Click to start →</p>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
                         </div>
                       </motion.div>
                     ))}
                   </motion.div>
                 ) : (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="text-center py-12 bg-[#1F2937] rounded-xl shadow-lg border border-[#374151]"
+                    exit={{ opacity: 0 }}
+                    className="text-center py-16 bg-white/[0.02] rounded-2xl border border-white/[0.06]"
                   >
-                    <motion.div
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                      className="inline-block p-4 bg-[#111827] rounded-full mb-4"
-                    >
-                      <Search className="w-8 h-8 text-[#6B7280]" />
-                    </motion.div>
-                    <h3 className="text-lg font-medium text-[#E5E7EB] mb-2">No activities found</h3>
-                    <p className="text-[#9CA3AF]">Try adjusting your filters or search query</p>
+                    <Search className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                    <p className="text-white/40">No activities found</p>
+                    <p className="text-xs text-white/25 mt-1">Try adjusting your filters</p>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+            </div>
+          </div>
+        ) : (
+          // Activity Detail View
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto"
+          >
+            <GlassCard>
+              <div className="p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={resetActivity}
+                    className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-white/60" />
+                  </button>
+                  <h2 className="text-xl font-semibold text-white/80">{selectedActivity.title}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className={`${selectedActivity.bgColor} rounded-2xl p-8 flex items-center justify-center min-h-[320px]`}>
+                    {renderActivityAnimation()}
+                  </div>
+
+                  <div className="space-y-5">
+                    <p className="text-white/60 text-sm leading-relaxed">{selectedActivity.longDescription}</p>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                        <Clock className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                        <p className="text-xs text-white/40">Duration</p>
+                        <p className="text-sm font-semibold text-white/70">{selectedActivity.duration} min</p>
+                      </div>
+                      <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                        <Heart className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                        <p className="text-xs text-white/40">Benefits</p>
+                        <p className="text-sm font-semibold text-white/70">{selectedActivity.benefits?.length || 0}</p>
+                      </div>
+                      <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                        <Award className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                        <p className="text-xs text-white/40">Level</p>
+                        <p className="text-sm font-semibold text-white/70">Beginner</p>
+                      </div>
+                    </div>
+
+                    {selectedActivity.benefits && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-white/60 mb-2">Benefits</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedActivity.benefits.map((benefit, i) => (
+                            <span key={i} className="text-xs text-emerald-400/80 bg-emerald-500/10 px-2 py-1 rounded-full">
+                              ✓ {benefit}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedActivity.animation === "breathing" && isActive && (
+                      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                        <p className="text-sm font-medium text-emerald-400 capitalize">{breathingPhase}</p>
+                      </div>
+                    )}
+
+                    {selectedActivity.instructions && (
+                      <div>
+                        <button
+                          onClick={() => setShowInstructions(!showInstructions)}
+                          className="text-sm text-emerald-400 flex items-center gap-1"
+                        >
+                          <ChevronDown className={`w-4 h-4 transition-transform ${showInstructions ? 'rotate-180' : ''}`} />
+                          {showInstructions ? 'Hide' : 'Show'} Instructions
+                        </button>
+                        <AnimatePresence>
+                          {showInstructions && (
+                            <motion.ul
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-3 space-y-1 text-xs text-white/40 list-disc list-inside"
+                            >
+                              {selectedActivity.instructions.map((instruction, i) => (
+                                <li key={i}>{instruction}</li>
+                              ))}
+                            </motion.ul>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-4">
+                      {!isActive && !completed ? (
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => startActivity(selectedActivity)}
+                          className="flex-1 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_4px_20px_rgba(34,197,94,0.3)]"
+                        >
+                          Start Activity
+                        </motion.button>
+                      ) : (
+                        <>
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={pauseActivity}
+                            className="flex-1 py-3 rounded-xl font-semibold text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"
+                          >
+                            {isPaused ? 'Resume' : 'Pause'}
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={resetActivity}
+                            className="flex-1 py-3 rounded-xl font-semibold text-sm bg-white/[0.06] text-white/60 border border-white/[0.08]"
+                          >
+                            Cancel
+                          </motion.button>
+                        </>
+                      )}
+                    </div>
+
+                    {completed && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center"
+                      >
+                        <Check className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                        <p className="text-emerald-400 font-medium">Great job! Activity completed!</p>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          </motion.div>
+        )}
+
+        {/* Bottom Navigation */}
+        {!selectedActivity && (
+          <div className="grid grid-cols-2 gap-3 mt-8">
+            {[
+              { href: "/dashboard", icon: Home, label: "Dashboard", sub: "Log your mood", color: "#22c55e" },
+              { href: "/Analytics_Page", icon: BarChart3, label: "Analytics", sub: "Track mood patterns", color: "#38bdf8" },
+            ].map(({ href, icon: Icon, label, sub, color }) => (
+              <motion.div
+                key={href}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Link href={href}>
+                  <GlassCard className="p-4 cursor-pointer hover:border-white/15 transition-all group">
+                    <div className="p-2 rounded-xl w-fit mb-3" style={{ background: `${color}18` }}>
+                      <Icon className="w-5 h-5" style={{ color }} />
+                    </div>
+                    <p className="text-sm font-semibold text-white/80">{label}</p>
+                    <p className="text-xs text-white/35 mt-0.5">{sub}</p>
+                    <ChevronRight className="w-3.5 h-3.5 text-white/25 mt-2 group-hover:translate-x-0.5 transition-transform" />
+                  </GlassCard>
+                </Link>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>

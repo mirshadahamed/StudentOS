@@ -9,7 +9,7 @@ import {
   Edit2, Trash2, Zap, AlertOctagon, MessageCircle
 } from 'lucide-react';
 import ExpenseRain from '../../../../components/ExpenseRain';
-import { withUserBody, withUserQuery } from '../apiClient';
+import { getFinanceUserId, withUserBody, withUserQuery } from '../apiClient';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
@@ -23,6 +23,7 @@ export default function ExpensesPage() {
   const wizardCategories = ['Housing', 'Food', 'Transport', 'Subscriptions', 'Unexpected / Emergency', 'Other'];
   const [wizardStep, setWizardStep] = useState(0);
   const [wizardInput, setWizardInput] = useState({ title: '', amount: '' });
+  const [whatsAppLinkHref, setWhatsAppLinkHref] = useState('https://wa.me/14155238886');
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +69,13 @@ export default function ExpensesPage() {
   };
 
   useEffect(() => { fetchExpenses(); }, []);
+  useEffect(() => {
+    const userId = getFinanceUserId();
+    const text = userId
+      ? `link ${userId}`
+      : 'link YOUR_USER_ID';
+    setWhatsAppLinkHref(`https://wa.me/14155238886?text=${encodeURIComponent(text)}`);
+  }, []);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -190,7 +198,7 @@ export default function ExpensesPage() {
                 </div>
                 <div>
                   <h3 className="text-blue-400 font-bold">Weekly Sync Due!</h3>
-                  <p className="text-sm text-gray-300">It's been {daysSinceLog} days since you last logged an expense. Time for a quick bulk entry?</p>
+                  <p className="text-sm text-gray-300">It&apos;s been {daysSinceLog} days since you last logged an expense. Time for a quick bulk entry?</p>
                 </div>
               </div>
               <button onClick={() => { setIsWizardOpen(true); setWizardStep(0); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm transition-colors">Start Sync Wizard</button>
@@ -258,17 +266,17 @@ export default function ExpensesPage() {
                 <MessageCircle className="text-green-500" size={20} />
               </div>
               <p className="text-sm text-green-400 font-medium">
-                <strong className="font-bold">Hate manual entry?</strong> Connect our WhatsApp Bot and just text "Uber 500" to auto-log your expenses!
+                <strong className="font-bold">Hate manual entry?</strong> Link your WhatsApp first, then text &quot;Uber 500&quot; to auto-log your expenses.
               </p>
             </div>
             
             <a 
-              href="https://wa.me/14155238886?text=join%20possibly-plus"
+              href={whatsAppLinkHref}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap inline-block text-center"
             >
-              Connect WhatsApp
+              Link WhatsApp
             </a>
 
           </motion.div>
@@ -291,6 +299,10 @@ export default function ExpensesPage() {
               initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 1, ease: "easeOut" }}
               className="absolute top-0 left-0 h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"
             />
+          </div>
+          <div className="mt-4 flex items-center justify-between text-xs font-bold uppercase tracking-[0.25em] text-gray-500">
+            <span>Outstanding</span>
+            <span className="text-orange-400">LKR {pendingAmount.toLocaleString()}</span>
           </div>
         </div>
 
@@ -493,7 +505,7 @@ export default function ExpensesPage() {
                   />
                   <div>
                     <p className="text-sm font-bold text-white">Make this a Recurring Expense</p>
-                    <p className="text-xs text-gray-400">Auto-adds to "Pending" on the 1st of every month.</p>
+                    <p className="text-xs text-gray-400">Auto-adds to &quot;Pending&quot; on the 1st of every month.</p>
                   </div>
                 </label>
 

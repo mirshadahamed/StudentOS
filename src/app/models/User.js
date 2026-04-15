@@ -14,6 +14,9 @@ const UserSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    whatsappPhone: {
+      type: String,
+    },
     password: {
       type: String,
       required: true,

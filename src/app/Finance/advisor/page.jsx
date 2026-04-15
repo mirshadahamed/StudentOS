@@ -5,14 +5,30 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, BrainCircuit, Sparkles, TrendingUp, 
-  ShieldAlert, Loader2, ArrowRight, Target, Activity, MapPin, Building, ShieldCheck
+  ShieldAlert, Loader2, ArrowRight, Activity, MapPin, Building, ShieldCheck
 } from 'lucide-react';
-import { withUserBody } from '../apiClient';
+import { withUserBody, withUserQuery } from '../apiClient';
+
+function normalizeAdvisorOptions(payload) {
+  const rawOptions = payload?.investment_options || payload?.options || payload?.strategies || [];
+
+  if (!Array.isArray(rawOptions)) return [];
+
+  return rawOptions.map((item, index) => ({
+    id: item.id || item.name || item.title || index,
+    category: item.category || item.risk_level || item.risk || item.type || 'Balanced Option',
+    estimatedReturn: item.estimatedReturn || item.expected_return || item.return_range || item.return || item.type || 'See explanation',
+    title: item.title || item.name || `Strategy ${index + 1}`,
+    explanation: item.explanation || item.reason || item.description || item.details || 'No explanation provided.',
+  }));
+}
 
 export default function AIAdvisorPage() {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [adviceOptions, setAdviceOptions] = useState(null);
+  const [advisorNote, setAdvisorNote] = useState('');
+  const [financeSnapshot, setFinanceSnapshot] = useState(null);
   const [error, setError] = useState('');
   const [loadingText, setLoadingText] = useState('Initializing AI Core...');
 
@@ -34,25 +50,36 @@ export default function AIAdvisorPage() {
 
   const getAdvice = async (e) => {
     e.preventDefault();
-    if (!amount || isNaN(amount)) return;
+    if (amount && isNaN(amount)) return;
     
     setLoading(true);
     setError('');
     setAdviceOptions(null);
+    setAdvisorNote('');
+    setFinanceSnapshot(null);
 
     try {
-      const res = await fetch('/api/finance/advisor', {
+      const res = await fetch(withUserQuery('/api/finance/advisor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(withUserBody({ amount: parseFloat(amount) }))
+        body: JSON.stringify(withUserBody({ amount: amount ? parseFloat(amount) : undefined }))
       });
 
-      if (!res.ok) throw new Error("Failed to connect to AI Core");
-      
       const data = await res.json();
-      setAdviceOptions(data.options);
+
+      if (!res.ok) throw new Error(data.error || "Failed to connect to AI Core");
+      
+      const normalizedOptions = normalizeAdvisorOptions(data);
+
+      if (!normalizedOptions.length) {
+        throw new Error('Advisor returned no usable strategies');
+      }
+
+      setAdvisorNote(data.advisor_note || data.note || '');
+      setFinanceSnapshot(data.finance_snapshot || null);
+      setAdviceOptions(normalizedOptions);
     } catch (err) {
-      setError("The AI is currently unavailable right now. Please try again.");
+      setError(err.message || "The AI is currently unavailable right now. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -95,7 +122,7 @@ export default function AIAdvisorPage() {
                 AI Wealth Strategist <BrainCircuit className="text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" size={42} />
               </motion.h1>
               <p className="text-neutral-400 mt-4 text-lg max-w-2xl leading-relaxed">
-                Hyper-localized financial intelligence. Enter your surplus funds, and our AI will build a 3-tier strategy using local Unit Trusts, FDs, and the CSE.
+                Hyper-localized financial intelligence. Use your Finance Hub data with an optional surplus amount, and the AI will build a 3-tier strategy using local Unit Trusts, FDs, and the CSE.
               </p>
             </div>
           </div>
@@ -112,7 +139,7 @@ export default function AIAdvisorPage() {
                 <Sparkles className="text-cyan-400" size={24} /> Analyze Surplus
               </h2>
               <p className="text-sm text-neutral-400 mb-8 relative z-10">
-                How much extra <strong className="text-white">LKR</strong> do you have this month? Let the AI calculate 3 diverse paths for your money.
+                Enter extra <strong className="text-white">LKR</strong> for this month, or leave it blank and let the AI infer a usable surplus from your saved income, expenses, savings, and split activity.
               </p>
               
               <form onSubmit={getAdvice} className="space-y-6 relative z-10">
@@ -121,18 +148,21 @@ export default function AIAdvisorPage() {
                     <span className="absolute left-6 top-1/2 -translate-y-1/2 text-neutral-500 font-black text-lg transition-colors group-focus-within/input:text-cyan-400">LKR</span>
                     <input 
                       type="number" 
-                      required min="1" step="1" 
-                      placeholder="e.g. 100000" 
+                      min="1" step="1" 
+                      placeholder="e.g. 100000 (optional)" 
                       value={amount} 
                       onChange={(e) => setAmount(e.target.value)}
                       className="w-full bg-black/60 border border-white/10 rounded-2xl pl-20 pr-6 py-5 text-2xl text-white font-black focus:outline-none focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-inner"
                     />
                   </div>
+                  <p className="mt-3 text-xs text-neutral-500">
+                    Personalized mode uses your Finance Hub records for this specific user.
+                  </p>
                 </div>
 
                 <button 
                   type="submit" 
-                  disabled={loading || !amount} 
+                  disabled={loading} 
                   className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white font-black py-5 rounded-2xl mt-4 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(6,182,212,0.2)] hover:shadow-[0_0_40px_rgba(6,182,212,0.4)]"
                 >
                   {loading ? (
@@ -174,7 +204,7 @@ export default function AIAdvisorPage() {
                     <BrainCircuit size={40} className="text-neutral-700" />
                   </div>
                   <h3 className="text-xl font-bold text-neutral-300 mb-2">Awaiting Financial Data</h3>
-                  <p className="text-neutral-500 font-medium max-w-sm">Enter your surplus amount to deploy the AI and generate your 3-tier Sri Lankan portfolio.</p>
+                  <p className="text-neutral-500 font-medium max-w-sm">Add a surplus amount or use your saved dashboard records to generate a personalized 3-tier Sri Lankan portfolio.</p>
                 </motion.div>
               )}
 
@@ -198,9 +228,45 @@ export default function AIAdvisorPage() {
                   initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="flex flex-col gap-6"
                 >
+                  {advisorNote && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-[2rem] border border-cyan-500/20 bg-cyan-500/5 p-6 text-cyan-50 shadow-[0_0_24px_rgba(6,182,212,0.08)]"
+                    >
+                      <p className="mb-2 text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Advisor Note</p>
+                      <p className="leading-relaxed text-neutral-300">{advisorNote}</p>
+                    </motion.div>
+                  )}
+
+                  {financeSnapshot && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+                    >
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500 mb-2">Income</p>
+                        <p className="text-2xl font-black text-white">LKR {Number(financeSnapshot.totalIncome || 0).toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500 mb-2">Expenses</p>
+                        <p className="text-2xl font-black text-white">LKR {Number(financeSnapshot.totalExpenses || 0).toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500 mb-2">Detected Surplus</p>
+                        <p className="text-2xl font-black text-cyan-400">LKR {Number(financeSnapshot.monthlySurplus || 0).toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                        <p className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500 mb-2">Analyzed Amount</p>
+                        <p className="text-2xl font-black text-emerald-400">LKR {Number(financeSnapshot.recommendedDeployableAmount || 0).toLocaleString()}</p>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {adviceOptions.map((item, index) => (
                     <motion.div 
-                      key={index}
+                      key={item.id}
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.15 }}
                       className="bg-neutral-900/60 backdrop-blur-3xl border border-white/10 hover:border-cyan-500/30 p-8 rounded-[2rem] shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-all group relative overflow-hidden"
                     >
