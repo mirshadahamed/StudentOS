@@ -1,52 +1,53 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo } from 'react';
+
+const SYMBOLS = ['$', 'LKR', 'Rs', '💸', '💰', '🪙'];
 
 export default function MoneyRain() {
-  const [mounted, setMounted] = useState(false);
-  const [drops, setDrops] = useState([]);
-
-  useEffect(() => {
-    const newDrops = Array.from({ length: 30 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}vw`,
-      animationDuration: Math.random() * 4 + 4, 
-      animationDelay: Math.random() * 5, 
-      opacity: Math.random() * 0.6 + 0.2,
-      size: Math.random() * 24 + 16, 
-      symbol: ['💵', '💸', '💰', '🪙', '💹'][Math.floor(Math.random() * 5)]
-    }));
-    
-    setDrops(newDrops);
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
+  const drops = useMemo(
+    () =>
+      Array.from({ length: 16 }, (_, i) => ({
+        id: i,
+        left: `${4 + i * 6}%`,
+        delay: `${(i % 6) * 0.9}s`,
+        duration: `${8 + (i % 4) * 1.5}s`,
+        opacity: 0.16 + (i % 3) * 0.06,
+        size: `${18 + (i % 4) * 6}px`,
+        symbol: SYMBOLS[i % SYMBOLS.length],
+      })),
+    []
+  );
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1]">
       {drops.map((drop) => (
-        <motion.div
+        <span
           key={drop.id}
-          initial={{ y: -100, rotate: 0 }}
-          animate={{ y: '120vh', rotate: 360 }}
-          transition={{ 
-            duration: drop.animationDuration, 
-            delay: drop.animationDelay, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
-          className="absolute drop-shadow-2xl"
-          style={{ 
-            left: drop.left, 
-            opacity: drop.opacity, 
-            fontSize: `${drop.size}px` 
+          className="absolute top-[-10%] font-black tracking-wider text-emerald-300 animate-[finance-fall_linear_infinite]"
+          style={{
+            left: drop.left,
+            opacity: drop.opacity,
+            fontSize: drop.size,
+            animationDelay: drop.delay,
+            animationDuration: drop.duration,
+            textShadow: '0 0 28px rgba(16,185,129,0.3)',
+            filter: 'drop-shadow(0 0 12px rgba(16,185,129,0.2))',
           }}
         >
           {drop.symbol}
-        </motion.div>
+        </span>
       ))}
+      <style jsx>{`
+        @keyframes finance-fall {
+          0% {
+            transform: translate3d(0, -12vh, 0) rotate(0deg);
+          }
+          100% {
+            transform: translate3d(0, 120vh, 0) rotate(18deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }

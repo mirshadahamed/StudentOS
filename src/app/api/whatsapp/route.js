@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import twilio from "twilio";
 import connectMongoDB from "../../libs/mongodb";
 import Transaction from "../../models/Transaction";
 import User from "../../models/User";
@@ -62,9 +61,16 @@ function categorizeExpense(title) {
 }
 
 function buildReply(message) {
-  const response = new twilio.twiml.MessagingResponse();
-  response.message(message);
-  return new NextResponse(response.toString(), {
+  const escapedMessage = String(message || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${escapedMessage}</Message></Response>`;
+
+  return new NextResponse(xml, {
     status: 200,
     headers: { "Content-Type": "text/xml" },
   });

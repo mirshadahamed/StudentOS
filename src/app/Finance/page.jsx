@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
@@ -8,10 +8,6 @@ import {
   ChevronRight, ShieldCheck, Activity, ChevronDown, 
   TrendingUp, BarChart2, Sprout, AlertTriangle, Droplets
 } from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie, Legend
-} from 'recharts';
 
 import MoneyRain from '../../../components/MoneyRain';
 import WealthCity from '../../../components/WealthCity';
@@ -117,9 +113,16 @@ const WealthTerrarium = ({ income, expenses }) => {
     }
   }
 
-  const particles = Array.from({ length: 8 }).map((_, i) => (
-    <motion.div key={i} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -100, opacity: [0, 1, 0], scale: [0.5, 1.5, 0.5] }} transition={{ duration: Math.random() * 2 + 2, repeat: Infinity, delay: Math.random() * 2 }} className="absolute w-2 h-2 rounded-full bg-emerald-400 blur-[1px]" style={{ left: `${Math.random() * 60 + 20}%`, bottom: '20%' }} />
-  ));
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        id: i,
+        left: `${22 + (i % 4) * 14}%`,
+        delay: i * 0.35,
+        duration: 2.4 + (i % 3) * 0.6,
+      })),
+    []
+  );
 
   return (
     <div className={`relative overflow-hidden backdrop-blur-xl border ${config.border || 'border-white/10'} p-8 rounded-[2rem] shadow-2xl flex flex-col items-center justify-center transition-all duration-700 ${config.bg}`}>
@@ -133,10 +136,102 @@ const WealthTerrarium = ({ income, expenses }) => {
             {config.icon}
           </motion.div>
         </AnimatePresence>
-        {state === 'thriving' && particles}
+        {state === 'thriving' &&
+          particles.map((particle) => (
+            <motion.div
+              key={particle.id}
+              initial={{ y: 0, opacity: 0, scale: 0 }}
+              animate={{ y: -100, opacity: [0, 1, 0], scale: [0.5, 1.4, 0.5] }}
+              transition={{ duration: particle.duration, repeat: Infinity, delay: particle.delay }}
+              className="absolute w-2 h-2 rounded-full bg-emerald-400 blur-[1px]"
+              style={{ left: particle.left, bottom: '20%' }}
+            />
+          ))}
         {state === 'critical' && <motion.div initial={{ y: -20, opacity: 1 }} animate={{ y: 80, opacity: 0 }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute text-rose-500 blur-[1px] font-bold">-LKR</motion.div>}
       </div>
       <div className="w-32 h-2 rounded-full bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.2)] mt-2 relative z-10" />
+    </div>
+  );
+};
+
+const SimpleBarChart = ({ data, colors }) => {
+  const maxValue = Math.max(...data.map((item) => item.value), 1);
+
+  return (
+    <div className="flex h-full items-end gap-4 pt-6">
+      {data.map((item, index) => {
+        const height = `${Math.max((item.value / maxValue) * 100, 8)}%`;
+
+        return (
+          <div key={item.name} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-3">
+            <div className="text-center text-[11px] font-bold text-white/80">
+              LKR {item.value.toLocaleString()}
+            </div>
+            <div className="flex h-full w-full items-end justify-center rounded-t-2xl bg-white/[0.03] px-2 pb-0">
+              <div
+                className="w-full rounded-t-2xl shadow-[0_0_24px_rgba(255,255,255,0.08)] transition-all duration-700"
+                style={{
+                  height,
+                  background: `linear-gradient(180deg, ${colors[index % colors.length]} 0%, rgba(255,255,255,0.08) 100%)`,
+                }}
+                title={`${item.name}: LKR ${item.value.toLocaleString()}`}
+              />
+            </div>
+            <div className="w-full truncate text-center text-xs font-medium text-neutral-400">
+              {item.name}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const SimpleDonutChart = ({ data, colors }) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  let startAngle = -90;
+
+  const segments = data.map((item, index) => {
+    const angle = (item.value / total) * 360;
+    const segment = `${colors[index % colors.length]} ${startAngle}deg ${startAngle + angle}deg`;
+    startAngle += angle;
+    return segment;
+  });
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6">
+      <div
+        className="relative h-48 w-48 rounded-full border border-white/10"
+        style={{
+          background: `conic-gradient(${segments.join(', ')})`,
+          boxShadow: '0 0 40px rgba(255,255,255,0.05)',
+        }}
+      >
+        <div className="absolute inset-[22%] flex items-center justify-center rounded-full border border-white/10 bg-[#050505]">
+          <div className="text-center">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Tracked</p>
+            <p className="text-xl font-black text-white">LKR {total.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid w-full grid-cols-1 gap-3">
+        {data.map((item, index) => (
+          <div key={item.name} className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: colors[index % colors.length], boxShadow: `0 0 12px ${colors[index % colors.length]}` }}
+              />
+              <span className="truncate text-sm font-medium text-neutral-300">{item.name}</span>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-white">LKR {item.value.toLocaleString()}</p>
+              <p className="text-[11px] text-neutral-500">{Math.round((item.value / total) * 100)}%</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -198,6 +293,8 @@ export default function FinanceHub() {
     fetchAllData();
   }, []);
 
+  const limitedBarData = useMemo(() => barData.slice(0, 6), [barData]);
+
   if (loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center text-cyan-500">
       <div className="relative w-24 h-24 mb-6"><div className="absolute inset-0 border-4 border-cyan-500/20 rounded-full"></div><div className="absolute inset-0 border-4 border-cyan-500 rounded-full border-t-transparent animate-spin"></div></div>
@@ -255,9 +352,8 @@ export default function FinanceHub() {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-neutral-300">Digital Empire Visualizer</h3>
-            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">LIVE 3D RENDER</span>
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">LIVE MOTION SCENE</span>
           </div>
-          {/* Passing the dynamic savings and calculated target directly to your 3D component */}
           <WealthCity currentSavings={stats.savings} goalAmount={stats.savingsGoal} />
         </div>
 
@@ -267,17 +363,8 @@ export default function FinanceHub() {
           <div className="bg-neutral-900/40 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] shadow-2xl">
             <h3 className="text-xl font-bold mb-8 text-neutral-300">Spending</h3>
             <div className="h-[250px] w-full">
-              {barData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" stroke="#525252" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#525252" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `LKR ${val}`} />
-                    <Tooltip cursor={{ fill: '#ffffff05' }} contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: '12px' }} itemStyle={{ color: '#fff', fontWeight: 'bold' }} />
-                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                      {barData.map((entry, index) => <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              {limitedBarData.length > 0 ? (
+                <SimpleBarChart data={limitedBarData} colors={BAR_COLORS} />
               ) : <div className="h-full w-full flex items-center justify-center text-neutral-600 font-medium text-sm">No expenses recorded yet.</div>}
             </div>
           </div>
@@ -286,15 +373,7 @@ export default function FinanceHub() {
             <h3 className="text-xl font-bold mb-8 text-neutral-300">Distribution</h3>
             <div className="h-[250px] w-full relative flex items-center justify-center">
               {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: '12px' }} itemStyle={{ color: '#fff', fontWeight: 'bold' }} />
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" stroke="none">
-                      {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
-                    </Pie>
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                  </PieChart>
-                </ResponsiveContainer>
+                <SimpleDonutChart data={pieData} colors={PIE_COLORS} />
               ) : <div className="h-full w-full flex items-center justify-center text-neutral-600 font-medium text-sm">Add data to view distribution.</div>}
             </div>
           </div>

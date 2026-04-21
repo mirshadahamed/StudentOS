@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import connectMongoDB from "../../../libs/mongodb";
 import Split from "../../../models/Split";
 
@@ -46,34 +45,9 @@ export async function POST(req) {
     });
 
     const canSendEmail = process.env.EMAIL_USER && process.env.EMAIL_PASS;
-
     if (canSendEmail && Array.isArray(body.members) && body.members.length > 0) {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      await Promise.allSettled(
-        body.members
-          .filter((member) => member?.email)
-          .map((member) =>
-            transporter.sendMail({
-              from: `"StudentOS Finance" <${process.env.EMAIL_USER}>`,
-              to: member.email,
-              subject: `You owe LKR ${member.amount} for ${body.title}`,
-              html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; border-radius: 10px; background: #f3f4f6;">
-                  <h2 style="color: #e11d48;">Split Bill Alert</h2>
-                  <p>Hi <b>${member.name || "there"}</b>,</p>
-                  <p><b>${body.payer || "Someone"}</b> just paid <b>LKR ${Number(body.total_amount).toLocaleString()}</b> for <b>${body.title}</b>.</p>
-                  <h3 style="color: #be123c;">Your share to pay: LKR ${member.amount}</h3>
-                </div>
-              `,
-            })
-          )
+      console.warn(
+        "Split bill emails are disabled in this workspace because nodemailer is not installed."
       );
     }
 

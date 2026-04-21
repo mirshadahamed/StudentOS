@@ -232,7 +232,16 @@ export default function Dashboard() {
         }
       }
       const saved = await saveRes.json();
-      setRecentEntries(p => [{ id: saved._id || Date.now().toString(), mood: moodToSave!, intensity: moodIntensity, timestamp: new Date(), note, factors: selectedFactors.length ? selectedFactors : undefined, source: mood ? "emoji" : "text" }, ...p].slice(0, 10));
+      const newEntry: MoodEntry = {
+        id: saved._id || Date.now().toString(),
+        mood: moodToSave!,
+        intensity: moodIntensity,
+        timestamp: new Date(),
+        note,
+        factors: selectedFactors.length ? selectedFactors : undefined,
+        source: mood ? "emoji" : "text",
+      };
+      setRecentEntries((p) => [newEntry, ...p].slice(0, 10));
       setSelectedMood(null); setMoodNote(""); setSentiment(null); setSelectedFactors([]); setMoodIntensity(3); setStep("mood");
       alert(`✅ Mood saved as "${moodToSave}" (intensity ${moodIntensity}/5)`);
     } catch { showErrorMsg("❌ Failed to save mood. Please try again."); }
@@ -454,11 +463,17 @@ export default function Dashboard() {
                             relative flex flex-col items-center py-4 px-2 rounded-2xl
                             border transition-all duration-200 group
                             ${selectedMood === mood.id
-                              ? "border-white/30 bg-white/10 ring-2 ring-offset-2 ring-offset-transparent"
+                              ? "border-white/30 bg-white/10"
                               : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/15"
                             }
                           `}
-                          style={selectedMood === mood.id ? { ringColor: mood.color } : {}}
+                          style={
+                            selectedMood === mood.id
+                              ? {
+                                  boxShadow: `0 0 0 2px ${mood.color}, 0 0 30px ${mood.color}22`,
+                                }
+                              : undefined
+                          }
                         >
                           <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform duration-200 inline-block">
                             {mood.emoji}

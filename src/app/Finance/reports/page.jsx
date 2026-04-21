@@ -3,12 +3,75 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, PieChart, TrendingUp, TrendingDown, Download, Activity } from 'lucide-react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell } from 'recharts';
-
-// 👇 FIXED IMPORTS: We import autoTable as its own function now!
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { withUserQuery } from '../apiClient';
+
+const SimpleComparisonChart = ({ data }) => {
+  const maxValue = Math.max(...data.map((item) => item.amount), 1);
+
+  return (
+    <div className="flex h-full items-end gap-6 pt-4">
+      {data.map((item) => (
+        <div key={item.name} className="flex flex-1 flex-col items-center gap-3">
+          <div className="text-sm font-bold text-white">${item.amount.toFixed(2)}</div>
+          <div className="flex h-full w-full items-end rounded-t-3xl bg-white/[0.03] px-3">
+            <div
+              className="w-full rounded-t-3xl transition-all duration-700"
+              style={{
+                height: `${Math.max((item.amount / maxValue) * 100, 10)}%`,
+                background: `linear-gradient(180deg, ${item.fill} 0%, rgba(255,255,255,0.08) 100%)`,
+                boxShadow: `0 0 30px ${item.fill}33`,
+              }}
+            />
+          </div>
+          <div className="text-sm font-medium text-gray-400">{item.name}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const SimpleBreakdownChart = ({ data, colors }) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  let start = -90;
+
+  const stops = data.map((item, index) => {
+    const end = start + (item.value / total) * 360;
+    const segment = `${colors[index % colors.length]} ${start}deg ${end}deg`;
+    start = end;
+    return segment;
+  });
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6">
+      <div
+        className="relative h-52 w-52 rounded-full border border-white/10"
+        style={{ background: `conic-gradient(${stops.join(', ')})` }}
+      >
+        <div className="absolute inset-[24%] flex items-center justify-center rounded-full bg-neutral-900 border border-white/10">
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500">Expenses</p>
+            <p className="text-lg font-bold text-white">${total.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full space-y-3">
+        {data.map((item, index) => (
+          <div key={item.name} className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
+              <span className="text-sm text-gray-300">{item.name}</span>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-white">${item.value.toFixed(2)}</p>
+              <p className="text-[11px] text-gray-500">{Math.round((item.value / total) * 100)}%</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -56,57 +119,44 @@ export default function ReportsPage() {
 
   const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
 
-  // 5. Native PDF Export Logic (CRASH-PROOF & FIXED)
+  // 5. Offline-safe export as CSV instead of PDF
   const handleDownloadPDF = () => {
     setIsExporting(true);
     
     try {
-      const doc = new jsPDF();
-      
-      // Add Title
-      doc.setFontSize(22);
-      doc.setTextColor(99, 102, 241);
-      doc.text('Financial Analytics Report', 14, 20);
-      
-      doc.setFontSize(11);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+      const rows = [
+        ['Generated On', new Date().toLocaleDateString()],
+        ['Net Balance', netBalance.toFixed(2)],
+        ['Total Income', totalIncome.toFixed(2)],
+        ['Total Expenses', totalExpense.toFixed(2)],
+        [],
+        ['Date', 'Description', 'Category', 'Type', 'Amount'],
+        ...transactions.map((item) => [
+          new Date(item.date).toLocaleDateString(),
+          item.title || item.description || 'N/A',
+          item.category || 'Misc',
+          item.type === 'income' ? 'INCOME' : 'EXPENSE',
+          Number(item.amount || 0).toFixed(2),
+        ]),
+      ];
 
-      // Add Summary Data
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Net Balance: $${netBalance.toFixed(2)}`, 14, 40);
-      
-      doc.setTextColor(16, 185, 129);
-      doc.text(`Total Income: +$${totalIncome.toFixed(2)}`, 14, 48);
-      
-      doc.setTextColor(239, 68, 68);
-      doc.text(`Total Expenses: -$${totalExpense.toFixed(2)}`, 14, 56);
+      const csv = rows
+        .map((row) =>
+          row
+            .map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`)
+            .join(',')
+        )
+        .join('\n');
 
-      // Prepare Table Data
-      const tableColumns = ["Date", "Description", "Category", "Type", "Amount"];
-      const tableRows = transactions.map(item => [
-        new Date(item.date).toLocaleDateString(),
-        item.title || item.description || 'N/A',
-        item.category || 'Misc',
-        item.type === 'income' ? 'INCOME' : 'EXPENSE',
-        `$${item.amount.toFixed(2)}`
-      ]);
-
-      // 👇 FIXED: We call autoTable as a standalone function and pass 'doc' inside it
-      autoTable(doc, {
-        startY: 65,
-        head: [tableColumns],
-        body: tableRows,
-        theme: 'grid',
-        headStyles: { fillColor: [99, 102, 241] },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
-      });
-
-      // Save the PDF
-      doc.save(`StudentOS_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `StudentOS_Report_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("PDF Generation Failed", error);
+      console.error("CSV generation failed", error);
     } finally {
       setIsExporting(false);
     }
@@ -139,7 +189,7 @@ export default function ReportsPage() {
             disabled={loading || isExporting}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/20"
           >
-            {isExporting ? 'Generating PDF...' : <><Download size={20} /> Download PDF</>}
+            {isExporting ? 'Preparing export...' : <><Download size={20} /> Export CSV</>}
           </button>
         </header>
 
@@ -183,13 +233,7 @@ export default function ReportsPage() {
               <div className="bg-neutral-900 border border-white/10 rounded-3xl p-6">
                 <h3 className="text-xl font-bold mb-6 text-center">Cash Flow Overview</h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barChartData}>
-                      <XAxis dataKey="name" stroke="#9ca3af" />
-                      <Tooltip cursor={{fill: '#262626'}} contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', borderRadius: '10px' }} />
-                      <Bar dataKey="amount" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <SimpleComparisonChart data={barChartData} />
                 </div>
               </div>
 
@@ -199,16 +243,7 @@ export default function ReportsPage() {
                   <div className="h-64 flex items-center justify-center text-gray-500">No expenses recorded yet.</div>
                 ) : (
                   <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                          {categoryData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', borderRadius: '10px' }} />
-                      </RechartsPie>
-                    </ResponsiveContainer>
+                    <SimpleBreakdownChart data={categoryData} colors={COLORS} />
                   </div>
                 )}
               </div>
