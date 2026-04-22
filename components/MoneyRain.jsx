@@ -1,24 +1,28 @@
 'use client';
-/* eslint-disable react-hooks/purity */
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function MoneyRain() {
-  const isClient = typeof window !== 'undefined';
-  const drops = useMemo(() => {
-    if (!isClient) return [];
+  const [mounted, setMounted] = useState(false);
+  const [drops, setDrops] = useState([]);
 
-    return Array.from({ length: 30 }).map((_, i) => ({
+  useEffect(() => {
+    const newDrops = Array.from({ length: 30 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}vw`,
-      animationDuration: Math.random() * 4 + 4,
-      animationDelay: Math.random() * 5,
+      animationDuration: Math.random() * 4 + 4, 
+      animationDelay: Math.random() * 5, 
       opacity: Math.random() * 0.6 + 0.2,
-      size: Math.random() * 24 + 16,
-      symbol: ['💵', '💸', '💰', '🪙', '💹'][Math.floor(Math.random() * 5)],
+      size: Math.random() * 24 + 16, 
+      symbol: ['💵', '💸', '💰', '🪙', '💹'][Math.floor(Math.random() * 5)]
     }));
-  }, [isClient]);
+    
+    setDrops(newDrops);
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

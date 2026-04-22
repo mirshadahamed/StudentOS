@@ -52,7 +52,7 @@ export default function Hero() {
     } else {
       // ❌ Backend returned null — either network error or save failed
       setState('error');
-      setErrMsg('Could not save task. Check your user ID and MongoDB connection.');
+      setErrMsg('Could not save task. Check server config (e.g. `MONGO_URI`) and try again.');
       setTimeout(() => setState('idle'), 4000);
     }
   };
@@ -137,7 +137,7 @@ export default function Hero() {
                 {state === 'success' && (
                   <motion.p initial={{ opacity:0, y:-4 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
                     className="text-xs text-emerald-400 mt-1.5 flex items-center gap-1.5">
-                    <Check size={13}/> Task added and saved to MongoDB!
+                    <Check size={13}/> Task saved!
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -192,7 +192,7 @@ export default function Hero() {
           className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
           {[
             { icon:Zap,         title:'AI-Powered Scoring',  desc:'Urgency scores from 0–100 based on deadline proximity and priority level.' },
-            { icon:TrendingUp,  title:'Progress Tracking',   desc:'Calendar heatmap and per-task progress bars synced with MongoDB.' },
+            { icon:TrendingUp,  title:'Progress Tracking',   desc:'Calendar heatmap and per-task progress bars synced with your data store.' },
             { icon:Clock,       title:'Smart Reminders',     desc:'Automated email reminders at 21, 14, 7, 3 and 1 day marks.' },
           ].map(({ icon:Icon, title:t, desc }, i) => (
             <div key={i} className="p-6 rounded-2xl"

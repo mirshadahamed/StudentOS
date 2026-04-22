@@ -1,7 +1,7 @@
 'use client';
 // frontend/app/productivity/tasks/page.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -118,13 +118,15 @@ const TaskCard = ({ task, onToggle, onDelete, onSubtaskToggle, onProgressUpdate,
   const [expanded,  setExpanded]  = useState(false);
   const [localProg, setLocalProg] = useState(task.progress ?? 0);
 
+  // Keep progress in sync after subtask changes update the backend
+  useEffect(() => { setLocalProg(task.progress ?? 0); }, [task.progress]);
+
   const days     = task.daysLeft ?? dl(task.deadline);
   const score    = task.aiScore ?? 0;
   const u        = urgency(days);
   const sc       = scoreColor(score);
   const subtasks = task.subtasks || [];
   const doneSubs = subtasks.filter(s => s.done).length;
-  const shownProg = subtasks.length > 0 ? (task.progress ?? 0) : localProg;
 
   const commit   = async (pct) => { setLocalProg(pct); await onProgressUpdate(task._id, pct); };
 
@@ -189,11 +191,11 @@ const TaskCard = ({ task, onToggle, onDelete, onSubtaskToggle, onProgressUpdate,
       {/* Progress bar */}
       <div className="px-4 pb-3">
         <div className="h-1.5 rounded-full overflow-hidden bg-white/5">
-          <motion.div initial={{ width:0 }} animate={{ width:`${shownProg}%` }} transition={{ duration:0.7 }}
+          <motion.div initial={{ width:0 }} animate={{ width:`${localProg}%` }} transition={{ duration:0.7 }}
             className="h-full rounded-full" style={{ background:task.isCompleted?'#34d399':u.bar }}/>
         </div>
         <p className="text-[10px] mt-1 text-neutral-700">
-          {shownProg}% complete
+          {localProg}% complete
           {subtasks.length>0 && ` · ${doneSubs} of ${subtasks.length} steps done`}
         </p>
       </div>
@@ -283,36 +285,22 @@ export default function AllTasksPage() {
   const [saveError, setSaveError] = useState('');
   const [sort,      setSort]      = useState('aiScore');
 
-	  const load = async () => {
-	    setLoading(true);
-	    const [t, a] = await Promise.all([tasksAPI.getAll(), tasksAPI.getAnalytics()]);
-	    setTasks(t ?? []);
-	    setStats(a || { total:0, completed:0, critical:0, prodScore:0, avgAiScore:0 });
-	    setLoading(false);
-	  };
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [t, a] = await Promise.all([tasksAPI.getAll(), tasksAPI.getAnalytics()]);
+    setTasks(t ?? []);
+    setStats(a || { total:0, completed:0, critical:0, prodScore:0, avgAiScore:0 });
+    setLoading(false);
+  }, []);
 
-	  useEffect(() => {
-	    let cancelled = false;
-	    const loadTasks = async () => {
-	      setLoading(true);
-	      const [t, a] = await Promise.all([tasksAPI.getAll(), tasksAPI.getAnalytics()]);
-	      if (!cancelled) {
-	        setTasks(t ?? []);
-	        setStats(a || { total:0, completed:0, critical:0, prodScore:0, avgAiScore:0 });
-	        setLoading(false);
-	      }
-	    };
-
-	    void loadTasks();
-	    return () => { cancelled = true; };
-	  }, []);
+  useEffect(() => { load(); }, [load]);
 
   const addTask = async (form) => {
     setSaving(true); setSaveError('');
     const result = await tasksAPI.create(form);
     setSaving(false);
     if (result?._id) { await load(); setShowAdd(false); }
-	    else setSaveError('Save failed. Please try again.');
+    else setSaveError('Save failed — check server config (e.g. `MONGO_URI`) and try again.');
   };
 
   const toggleTask = async (id, done) => {
@@ -434,7 +422,7 @@ export default function AllTasksPage() {
         ) : tasks.length===0 ? (
           <div className="text-center py-16">
             <p className="text-base font-medium text-neutral-600">No tasks yet.</p>
-	            <p className="text-sm mt-1 text-neutral-700">Click &quot;Add Task&quot; to get started.</p>
+            <p className="text-sm mt-1 text-neutral-700">Click "Add Task" to get started.</p>
           </div>
         ) : (
           <>

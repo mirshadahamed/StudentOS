@@ -9,7 +9,7 @@ import {
   Plus, ArrowUpRight, AlertCircle, Sparkles,
   Loader2, Check, X, ListChecks
 } from 'lucide-react';
-import { tasksAPI, aiAPI, userAPI, getCurrentUserId } from '@/lib/api';
+import { tasksAPI, aiAPI, meAPI, userSession } from '@/lib/api';
 
 // ─── AMBIENT BACKGROUND ───────────────────────────────────────────────────────
 const AmbientBg = () => (
@@ -85,20 +85,20 @@ const NavCard = ({ icon:Icon, label, sub, href, delay }) => (
 
 // ─── ADD TASK FORM with subtask fields ────────────────────────────────────────
 const AddTaskForm = ({ onAdded }) => {
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [state, setState] = useState('idle'); // idle | success | error
-  const [form, setForm] = useState({ title:'', course:'', deadline:'', category:'Assignment', priority:'Medium' });
+  const [open,    setOpen]    = useState(false);
+  const [saving,  setSaving]  = useState(false);
+  const [state,   setState]   = useState('idle'); // idle | success | error
+  const [form,    setForm]    = useState({ title:'', course:'', deadline:'', category:'Assignment', priority:'Medium' });
   const [subtasks, setSubtasks] = useState(['', '', '']); // 3 editable subtask inputs
-  const sf = (k, v) => setForm(f => ({ ...f, [k]:v }));
+  const sf = (k,v) => setForm(f=>({...f,[k]:v}));
 
-  const updateSub = (i, val) => setSubtasks(s => s.map((x, j) => j === i ? val : x));
+  const updateSub = (i, val) => setSubtasks(s => s.map((x,j) => j===i ? val : x));
   const addSubRow = () => setSubtasks(s => [...s, '']);
-  const removeSub = (i) => setSubtasks(s => s.filter((_, j) => j !== i));
+  const removeSub = (i) => setSubtasks(s => s.filter((_,j) => j!==i));
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim()) { setState('error'); setTimeout(() => setState('idle'), 2200); return; }
+    if (!form.title.trim()) { setState('error'); setTimeout(()=>setState('idle'),2200); return; }
     setSaving(true);
 
     // Only send subtasks that have text
@@ -109,18 +109,18 @@ const AddTaskForm = ({ onAdded }) => {
 
     if (result?._id) {
       setForm({ title:'', course:'', deadline:'', category:'Assignment', priority:'Medium' });
-      setSubtasks(['', '', '']);
+      setSubtasks(['','','']);
       setOpen(false);
       setState('success');
-      setTimeout(() => setState('idle'), 2500);
+      setTimeout(()=>setState('idle'), 2500);
       onAdded(result);
     } else {
       setState('error');
-      setTimeout(() => setState('idle'), 2500);
+      setTimeout(()=>setState('idle'), 2500);
     }
   };
 
-  const fieldCls = 'rounded-xl px-3 py-2.5 text-sm outline-none font-medium transition-all w-full';
+  const fieldCls = "rounded-xl px-3 py-2.5 text-sm outline-none font-medium transition-all w-full";
   const fieldSty = { background:'rgba(255,255,255,0.05)', border:'1px solid rgba(249,115,22,0.18)', color:'white' };
 
   return (
@@ -130,14 +130,14 @@ const AddTaskForm = ({ onAdded }) => {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <button type="button" onClick={() => setOpen(o => !o)}
+        <button type="button" onClick={()=>setOpen(o=>!o)}
           className="p-2.5 rounded-full transition-all flex items-center justify-center"
-          style={{ background:open ? 'linear-gradient(135deg,#f97316,#ec4899)' : 'rgba(249,115,22,0.1)', color:open ? 'white' : '#f97316', transform:open ? 'rotate(45deg)' : 'none', border:'1px solid rgba(249,115,22,0.2)' }}>
+          style={{ background:open?'linear-gradient(135deg,#f97316,#ec4899)':'rgba(249,115,22,0.1)', color:open?'white':'#f97316', transform:open?'rotate(45deg)':'none', border:'1px solid rgba(249,115,22,0.2)' }}>
           <Plus size={17}/>
         </button>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500">Quick Add Task</p>
         <AnimatePresence>
-          {state === 'success' && (
+          {state==='success' && (
             <motion.span initial={{ opacity:0, x:8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0 }}
               className="flex items-center gap-1.5 text-xs font-bold ml-auto text-emerald-400">
               <Check size={13}/> Task saved!
@@ -150,14 +150,14 @@ const AddTaskForm = ({ onAdded }) => {
       <div className="grid grid-cols-12 gap-3 items-center mb-3">
         <input type="text" placeholder="Task title..."
           className="col-span-8 rounded-2xl px-5 py-4 text-sm font-medium outline-none transition-all"
-          style={{ background:'rgba(255,255,255,0.05)', border:`1.5px solid ${state === 'error' ? 'rgba(239,68,68,0.5)' : 'rgba(249,115,22,0.18)'}`, color:'white' }}
-          value={form.title} onChange={e => sf('title', e.target.value)}
+          style={{ background:'rgba(255,255,255,0.05)', border:`1.5px solid ${state==='error'?'rgba(239,68,68,0.5)':'rgba(249,115,22,0.18)'}`, color:'white' }}
+          value={form.title} onChange={e=>sf('title',e.target.value)}
         />
         <motion.button type="submit" disabled={saving}
-          animate={state === 'error' ? { x:[-5, 5, -5, 5, 0] } : {}}
+          animate={state==='error'?{x:[-5,5,-5,5,0]}:{}}
           className="col-span-4 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-all"
-          style={{ background:state === 'error' ? '#ef4444' : 'linear-gradient(135deg,#f97316,#ec4899)' }}>
-          {saving ? <><Loader2 size={14} className="animate-spin"/>Saving...</> : state === 'error' ? 'Add title first' : <><Plus size={13}/>Add Task</>}
+          style={{ background:state==='error'?'#ef4444':'linear-gradient(135deg,#f97316,#ec4899)' }}>
+          {saving?<><Loader2 size={14} className="animate-spin"/>Saving...</>:state==='error'?'Add title first':<><Plus size={13}/>Add Task</>}
         </motion.button>
       </div>
 
@@ -165,32 +165,32 @@ const AddTaskForm = ({ onAdded }) => {
       <AnimatePresence>
         {open && (
           <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }}
-            exit={{ height:0, opacity:0 }} transition={{ duration:0.35, ease:[0.23, 1, 0.32, 1] }}
+            exit={{ height:0, opacity:0 }} transition={{ duration:0.35, ease:[0.23,1,0.32,1] }}
             className="overflow-hidden">
             <div className="space-y-4 pt-4" style={{ borderTop:'1px solid rgba(249,115,22,0.1)' }}>
 
               {/* Course / Deadline / Category / Priority */}
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { label:'Course', key:'course', type:'text', placeholder:'e.g. CS3012' },
+                  { label:'Course',   key:'course',   type:'text', placeholder:'e.g. CS3012' },
                   { label:'Deadline', key:'deadline', type:'date', placeholder:'' },
-                ].map(f => (
+                ].map(f=>(
                   <div key={f.key}>
                     <p className="text-[9px] font-black uppercase mb-1.5 ml-1 text-neutral-600">{f.label}</p>
                     <input type={f.type} placeholder={f.placeholder} className={fieldCls} style={fieldSty}
-                      value={form[f.key]} onChange={e => sf(f.key, e.target.value)}/>
+                      value={form[f.key]} onChange={e=>sf(f.key,e.target.value)}/>
                   </div>
                 ))}
                 <div>
                   <p className="text-[9px] font-black uppercase mb-1.5 ml-1 text-neutral-600">Category</p>
-                  <select className={fieldCls} style={fieldSty} value={form.category} onChange={e => sf('category', e.target.value)}>
-                    {['Assignment', 'Exam', 'Project', 'Lab Report', 'Presentation'].map(c => <option key={c} style={{ background:'#111' }}>{c}</option>)}
+                  <select className={fieldCls} style={fieldSty} value={form.category} onChange={e=>sf('category',e.target.value)}>
+                    {['Assignment','Exam','Project','Lab Report','Presentation'].map(c=><option key={c} style={{ background:'#111' }}>{c}</option>)}
                   </select>
                 </div>
                 <div>
                   <p className="text-[9px] font-black uppercase mb-1.5 ml-1 text-neutral-600">Priority</p>
-                  <select className={fieldCls} style={fieldSty} value={form.priority} onChange={e => sf('priority', e.target.value)}>
-                    {['High', 'Medium', 'Low'].map(p => <option key={p} style={{ background:'#111' }}>{p}</option>)}
+                  <select className={fieldCls} style={fieldSty} value={form.priority} onChange={e=>sf('priority',e.target.value)}>
+                    {['High','Medium','Low'].map(p=><option key={p} style={{ background:'#111' }}>{p}</option>)}
                   </select>
                 </div>
               </div>
@@ -200,19 +200,19 @@ const AddTaskForm = ({ onAdded }) => {
                 <div className="flex items-center gap-2 mb-2.5">
                   <ListChecks size={13} style={{ color:'#f97316' }}/>
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Subtasks</p>
-                  <span className="text-[9px] text-neutral-700">- break this task into steps</span>
+                  <span className="text-[9px] text-neutral-700">— break this task into steps</span>
                 </div>
                 <div className="space-y-2">
                   {subtasks.map((val, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-neutral-700 w-4 text-right shrink-0">{i + 1}.</span>
-                      <input type="text" placeholder={`Step ${i + 1} (e.g. Review lecture notes)`}
+                      <span className="text-[10px] font-black text-neutral-700 w-4 text-right shrink-0">{i+1}.</span>
+                      <input type="text" placeholder={`Step ${i+1} (e.g. Review lecture notes)`}
                         className="flex-1 rounded-xl px-3 py-2 text-xs outline-none font-medium"
                         style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(249,115,22,0.15)', color:'white' }}
-                        value={val} onChange={e => updateSub(i, e.target.value)}
+                        value={val} onChange={e=>updateSub(i,e.target.value)}
                       />
                       {subtasks.length > 1 && (
-                        <button type="button" onClick={() => removeSub(i)}
+                        <button type="button" onClick={()=>removeSub(i)}
                           className="p-1.5 rounded-lg transition-all hover:bg-red-500/10 shrink-0">
                           <X size={12} className="text-neutral-700"/>
                         </button>
@@ -240,11 +240,42 @@ const AddTaskForm = ({ onAdded }) => {
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ProductivityHub() {
-  const [isBooting, setIsBooting] = useState(true);
-  const [stats, setStats] = useState({ total:0, weekTasks:0, completed:0, prodScore:0, critical:0, avgAiScore:0 });
-  const [aiInsight, setAiInsight] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [userLoaded, setUserLoaded] = useState(false);
+
+  const [isBooting,   setIsBooting]   = useState(true);
+  const [stats,       setStats]       = useState({ total:0, weekTasks:0, completed:0, prodScore:0, critical:0, avgAiScore:0 });
+  const [aiInsight,   setAiInsight]   = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);
-  const [userLabel, setUserLabel] = useState('Student');
+
+  const pickName = (u) => {
+    if (!u || typeof u !== 'object') return '';
+    const direct = [u.name, u.fullName, u.username, u.email].find((v) => typeof v === 'string' && v.trim());
+    if (direct) return direct.trim();
+    const first = typeof u.firstName === 'string' ? u.firstName.trim() : '';
+    const last = typeof u.lastName === 'string' ? u.lastName.trim() : '';
+    const joined = [first, last].filter(Boolean).join(' ').trim();
+    return joined;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const me = await meAPI.get();
+      if (cancelled) return;
+
+      const id = String(me?.userId ?? '').trim();
+      if (id) userSession.setUserId(id);
+
+      const name = pickName(me?.user);
+      setUserName(name);
+      setUserLoaded(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const refresh = async () => {
     const [a, s, t] = await Promise.all([
@@ -257,93 +288,51 @@ export default function ProductivityHub() {
     setRecentTasks((t ?? []).slice(0, 4));
   };
 
-  useEffect(() => {
-    if (isBooting) return;
-
-    let cancelled = false;
-    const loadDashboard = async () => {
-      const [a, s, t] = await Promise.all([
-        tasksAPI.getAnalytics(),
-        aiAPI.getSuggestions(),
-        tasksAPI.getAll(),
-      ]);
-
-      if (cancelled) return;
-      setStats(a || { total:0, weekTasks:0, completed:0, prodScore:0, critical:0, avgAiScore:0 });
-      if (s?.length) setAiInsight(s[0]);
-      setRecentTasks((t ?? []).slice(0, 4));
-    };
-
-    void loadDashboard();
-    return () => { cancelled = true; };
-  }, [isBooting]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadUser = async () => {
-      const profile = await userAPI.getProfile();
-      if (cancelled) return;
-
-      const fallbackId = getCurrentUserId();
-      const nextLabel =
-        profile?.user?.name ||
-        profile?.user?.fullName ||
-        profile?.user?.username ||
-        profile?.user?.email ||
-        profile?.userId ||
-        fallbackId ||
-        'Student';
-
-      setUserLabel(nextLabel);
-    };
-
-    void loadUser();
-    return () => { cancelled = true; };
-  }, []);
+  useEffect(() => { if (!isBooting && userLoaded) refresh(); }, [isBooting, userLoaded]);
 
   const handleAdded = (task) => {
-    setRecentTasks(prev => [task, ...prev].slice(0, 4));
+    setRecentTasks(prev => [task, ...prev].slice(0,4));
     refresh();
   };
 
   const cards = [
-    { icon:CheckCircle2, label:'Registry', sub:'All Tasks', href:'/productivity/tasks' },
-    { icon:TrendingUp, label:'Tracker', sub:'Progress', href:'/productivity/progress' },
-    { icon:Brain, label:'Intelligence', sub:'AI Planner', href:'/productivity/ai-planner' },
-    { icon:Timer, label:'Flow State', sub:'Focus Mode', href:'/productivity/focus' },
+    { icon:CheckCircle2, label:'Registry',     sub:'All Tasks',  href:'/productivity/tasks'      },
+    { icon:TrendingUp,   label:'Tracker',      sub:'Progress',   href:'/productivity/progress'   },
+    { icon:Brain,        label:'Intelligence', sub:'AI Planner', href:'/productivity/ai-planner' },
+    { icon:Timer,        label:'Flow State',   sub:'Focus Mode', href:'/productivity/focus'       },
   ];
 
   const statRow = [
-    { label:'Total Tasks', val: stats.total },
-    { label:'Completed', val: stats.completed },
+    { label:'Total Tasks',  val: stats.total },
+    { label:'Completed',    val: stats.completed },
     { label:'Productivity', val: `${stats.prodScore}%` },
-    { label:'Critical', val: stats.critical },
+    { label:'Critical',     val: stats.critical },
   ];
 
-  const scoreColor = (s) => s >= 70 ? '#f43f5e' : s >= 40 ? '#fb923c' : '#34d399';
+  const scoreColor = (s) => s>=70?'#f43f5e':s>=40?'#fb923c':'#34d399';
+  const welcomeName = userName || 'Student';
 
   return (
     <div className="min-h-screen relative text-white" style={{ fontFamily:'system-ui,sans-serif' }}>
-      <AnimatePresence>{isBooting && <BootScreen onComplete={() => setIsBooting(false)}/>}</AnimatePresence>
+      <AnimatePresence>{isBooting && <BootScreen onComplete={()=>setIsBooting(false)}/>}</AnimatePresence>
       <AmbientBg/>
 
       <main className="relative z-10 max-w-5xl mx-auto px-8 py-16 space-y-10">
 
-        {/* Header - back to home */}
-        <motion.div initial={{ opacity:0, y:-12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.15 }}
-          className="flex items-start justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2 text-orange-500/70">Smart Planning Hub</p>
-            <h1 className="text-5xl font-black tracking-tighter text-white">Welcome, {userLabel}.</h1>
-            <p className="text-sm mt-1.5 text-neutral-500">Your academic command centre</p>
-          </div>
-          {/* Back to landing page */}
-          <Link href="/"
-            className="mt-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-neutral-600 hover:text-neutral-400 transition-colors">
-            ← Home
-          </Link>
-        </motion.div>
+        {/* Header — back to home */}
+	        <motion.div initial={{ opacity:0, y:-12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.15 }}
+	          className="flex items-start justify-between">
+	          <div>
+	            <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2 text-orange-500/70">Smart Planning Hub</p>
+	            <h1 className="text-5xl font-black tracking-tighter text-white">Welcome, {welcomeName}.</h1>
+	            <p className="text-sm mt-1.5 text-neutral-500">Your academic command centre</p>
+	          </div>
+	          <div className="mt-1 text-right">
+	            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-700">
+	              {userLoaded ? 'Synced' : 'Loading profile…'}
+	            </p>
+	          </div>
+	        </motion.div>
 
         {/* Add task form */}
         <motion.div initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.2 }}>
@@ -361,17 +350,17 @@ export default function ProductivityHub() {
                 <Link href="/productivity/tasks" className="text-[10px] font-black text-orange-500/70 hover:text-orange-400 transition-colors">View all →</Link>
               </div>
               <div className="space-y-2">
-                {recentTasks.map((t, i) => {
-                  const sc = t.aiScore ?? 0;
+                {recentTasks.map((t,i)=>{
+                  const sc  = t.aiScore ?? 0;
                   const col = scoreColor(sc);
                   const subs = t.subtasks || [];
-                  const done = subs.filter(s => s.done).length;
+                  const done = subs.filter(s=>s.done).length;
                   return (
-                    <div key={t._id || i} className="flex items-center gap-3">
+                    <div key={t._id||i} className="flex items-center gap-3">
                       <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background:col }}/>
                       <p className="text-sm font-medium flex-1 truncate text-neutral-200">{t.title}</p>
                       {subs.length > 0 && (
-                        <span className="text-[10px] shrink-0" style={{ color:done === subs.length ? '#34d399' : '#fb923c' }}>
+                        <span className="text-[10px] shrink-0" style={{ color:done===subs.length?'#34d399':'#fb923c' }}>
                           {done}/{subs.length} steps
                         </span>
                       )}
@@ -389,15 +378,15 @@ export default function ProductivityHub() {
 
         {/* Nav cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {cards.map((c, i) => <NavCard key={i} {...c} delay={0.28 + i * 0.08}/>)}
+          {cards.map((c,i)=><NavCard key={i} {...c} delay={0.28+i*0.08}/>)}
         </div>
 
         {/* Stats strip */}
         <div className="flex flex-wrap items-center justify-center py-10 gap-y-6"
           style={{ borderTop:'1px solid rgba(249,115,22,0.1)', borderBottom:'1px solid rgba(249,115,22,0.1)' }}>
-          {statRow.map((s, i) => (
+          {statRow.map((s,i)=>(
             <div key={i} className="flex flex-col items-center px-10 md:px-14"
-              style={{ borderRight:i < 3 ? '1px solid rgba(249,115,22,0.1)' : 'none' }}>
+              style={{ borderRight:i<3?'1px solid rgba(249,115,22,0.1)':'none' }}>
               <p className="text-[10px] uppercase tracking-[0.4em] mb-2.5 font-black text-center text-neutral-700">{s.label}</p>
               <p className="text-4xl font-extralight tracking-tighter text-white">{s.val}</p>
             </div>
@@ -412,7 +401,7 @@ export default function ProductivityHub() {
               <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-orange-500/70">System Alert</p>
               <p className="text-sm font-medium leading-relaxed text-neutral-400">
                 {stats.critical > 0
-                  ? `${stats.critical} task${stats.critical > 1 ? 's' : ''} due within 7 days. Open Progress to review.`
+                  ? `${stats.critical} task${stats.critical>1?'s':''} due within 7 days. Open Progress to review.`
                   : stats.total === 0
                   ? 'No tasks yet. Add your first task above.'
                   : 'No critical deadlines right now. Keep the momentum.'}
@@ -424,7 +413,7 @@ export default function ProductivityHub() {
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-pink-500/70">AI Insight</p>
               <p className="text-sm font-medium leading-relaxed text-neutral-400">
-                {aiInsight?.text ?? (stats.total === 0 ? 'Add tasks to activate AI scoring and insights.' : 'Loading AI insights...')}
+                {aiInsight?.text ?? (stats.total===0 ? 'Add tasks to activate AI scoring and insights.' : 'Loading AI insights...')}
               </p>
             </div>
           </div>

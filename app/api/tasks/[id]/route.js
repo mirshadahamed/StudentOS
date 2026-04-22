@@ -1,70 +1,71 @@
 import { NextResponse } from 'next/server';
-
-import { connectToDatabase } from '@/lib/server/db';
-import { getUserContext, resolveUserId } from '@/lib/server/request-user';
-import { Task } from '@/lib/server/task-model';
-import { enrichTask } from '@/lib/server/task-utils';
+import { connectMongoose, isMongoConfigured } from '@/lib/server/mongoose';
+import { Task } from '@/lib/server/models/task';
+import { deleteTask, updateTask } from '@/lib/server/taskStore';
+import { enrichTask } from '@/lib/server/taskUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, ctx) {
   try {
-    await connectToDatabase();
-    const { id } = await params;
-    const body = await request.json();
-    const { userId, userEmail } = await getUserContext(request, body);
-    const task = await Task.findOne({ _id: id, userId });
+    const body = await request.json().catch(() => null);
+    const params = await ctx.params;
 
-    if (!task) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    if (!isMongoConfigured()) {
+      const updated = await updateTask(params.id, body ?? {});
+      if (!updated) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      return NextResponse.json(enrichTask(updated));
     }
+
+    await connectMongoose();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
 
     const allowed = ['title', 'course', 'category', 'priority', 'deadline', 'progress', 'isCompleted', 'userEmail'];
     for (const key of allowed) {
-      if (body[key] === undefined) continue;
+      if (body?.[key] === undefined) continue;
       if (key === 'deadline') task[key] = body[key] ? new Date(body[key]) : null;
       else if (key === 'progress') task[key] = Math.max(0, Math.min(100, Number(body[key])));
       else task[key] = body[key];
     }
 
-    if (body.isCompleted === true || body.isCompleted === 'true') {
+    if (body?.isCompleted === true || body?.isCompleted === 'true') {
       task.isCompleted = true;
       task.progress = 100;
     }
-    if (body.isCompleted === false || body.isCompleted === 'false') {
+    if (body?.isCompleted === false || body?.isCompleted === 'false') {
       task.isCompleted = false;
-      if (task.progress === 100) {
-        task.progress = 0;
-      }
+      if (task.progress === 100) task.progress = 0;
     }
 
-    if (Array.isArray(body.subtasks)) {
+    if (Array.isArray(body?.subtasks)) {
       task.subtasks = body.subtasks
-        .filter((subtask) => subtask && typeof subtask.title === 'string' && subtask.title.trim())
-        .map((subtask) => ({
-          title: subtask.title.trim(),
-          done: Boolean(subtask.done),
-          _id: subtask._id || undefined,
-        }));
+        .filter((s) => s && typeof s.title === 'string' && s.title.trim())
+        .map((s) => ({ title: s.title.trim(), done: Boolean(s.done), _id: s._id || undefined }));
     }
 
-    task.userEmail = userEmail;
-
-    const savedTask = await task.save();
-    return NextResponse.json(enrichTask(savedTask));
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const saved = await task.save();
+    return NextResponse.json(enrichTask(saved));
+  } catch (err) {
+    console.error('[tasks/:id] PATCH error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(_request, ctx) {
   try {
-    await connectToDatabase();
-    const { id } = await params;
-    await Task.findOneAndDelete({ _id: id, userId: resolveUserId(request) });
+    const params = await ctx.params;
+    if (!isMongoConfigured()) {
+      await deleteTask(params.id);
+      return NextResponse.json({ success: true });
+    }
+
+    await connectMongoose();
+    await Task.findByIdAndDelete(params.id);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (err) {
+    console.error('[tasks/:id] DELETE error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }

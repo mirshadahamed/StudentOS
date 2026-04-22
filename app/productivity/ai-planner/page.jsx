@@ -216,7 +216,7 @@ export default function AIPlannerPage() {
       setHistory(prev=>[...prev,aMsg]);
       setMessages(prev=>{ const u=[...prev]; u[u.length-1]=aMsg; return u; });
     } catch {
-      setMessages(prev=>{ const u=[...prev]; u[u.length-1]={role:'assistant',content:'Connection error — is the backend running on port 5000?'}; return u; });
+      setMessages(prev=>{ const u=[...prev]; u[u.length-1]={role:'assistant',content:'Connection error — check server config and try again.'}; return u; });
     } finally { setChatLoading(false); }
   };
 

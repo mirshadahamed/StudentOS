@@ -1,7 +1,7 @@
 'use client';
 // frontend/app/productivity/focus/page.jsx
 
-import React, { useState, useEffect, useEffectEvent, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, RotateCcw, Zap, Coffee, Loader2, Clock, Play, Pause } from 'lucide-react';
@@ -58,7 +58,16 @@ export default function FocusModePage() {
     });
   },[]);
 
-  const handleComplete = useEffectEvent(async () => {
+  useEffect(()=>{
+    if (isActive && seconds>0) {
+      timerRef.current = setInterval(()=>setSeconds(s=>s-1), 1000);
+    } else if (seconds===0 && isActive) {
+      handleComplete();
+    }
+    return ()=>clearInterval(timerRef.current);
+  },[isActive, seconds]);
+
+  const handleComplete = async () => {
     clearInterval(timerRef.current);
     setIsActive(false);
     const task = tasks[selIdx];
@@ -69,16 +78,7 @@ export default function FocusModePage() {
     const ns = await focusAPI.getStats();
     setStats(ns);
     setSaving(false);
-  });
-
-  useEffect(()=>{
-    if (isActive && seconds>0) {
-      timerRef.current = setInterval(()=>setSeconds(s=>s-1), 1000);
-    } else if (seconds===0 && isActive) {
-      void handleComplete();
-    }
-    return ()=>clearInterval(timerRef.current);
-  },[isActive, seconds]);
+  };
 
   const switchMode = (nm) => { clearInterval(timerRef.current); setIsActive(false); setMode(nm); setSeconds(MODES[nm].mins*60); };
   const reset = () => { clearInterval(timerRef.current); setIsActive(false); setSeconds(m.mins*60); };

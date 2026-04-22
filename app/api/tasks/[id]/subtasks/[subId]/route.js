@@ -1,36 +1,36 @@
 import { NextResponse } from 'next/server';
-
-import { connectToDatabase } from '@/lib/server/db';
-import { resolveUserId } from '@/lib/server/request-user';
-import { Task } from '@/lib/server/task-model';
-import { enrichTask } from '@/lib/server/task-utils';
+import { connectMongoose, isMongoConfigured } from '@/lib/server/mongoose';
+import { Task } from '@/lib/server/models/task';
+import { toggleSubtask } from '@/lib/server/taskStore';
+import { enrichTask } from '@/lib/server/taskUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, ctx) {
   try {
-    await connectToDatabase();
-    const { id, subId } = await params;
-    const body = await request.json();
-    const task = await Task.findOne({ _id: id, userId: resolveUserId(request, body) });
+    const body = await request.json().catch(() => null);
+    const params = await ctx.params;
 
-    if (!task) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    if (!isMongoConfigured()) {
+      const updated = await toggleSubtask(params.id, params.subId, body?.done);
+      if (!updated) return NextResponse.json({ error: 'Task or subtask not found' }, { status: 404 });
+      return NextResponse.json(enrichTask(updated));
     }
 
-    const subtask = task.subtasks.id(subId);
-    if (!subtask) {
-      return NextResponse.json({ error: 'Subtask not found' }, { status: 404 });
-    }
+    await connectMongoose();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
 
-    if (body.done !== undefined) {
-      subtask.done = Boolean(body.done);
-    }
+    const sub = task.subtasks.id(params.subId);
+    if (!sub) return NextResponse.json({ error: 'Subtask not found' }, { status: 404 });
 
-    const savedTask = await task.save();
-    return NextResponse.json(enrichTask(savedTask));
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (body?.done !== undefined) sub.done = Boolean(body.done);
+
+    const saved = await task.save();
+    return NextResponse.json(enrichTask(saved));
+  } catch (err) {
+    console.error('[subtask] PATCH error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }

@@ -1,29 +1,28 @@
 'use client';
-/* eslint-disable react-hooks/purity */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Receipt, TrendingDown, Minus } from 'lucide-react';
 
 export default function ExpenseRain() {
-  const isClient = typeof window !== 'undefined';
-  const elements = useMemo(() => {
-    if (!isClient) return [];
+  const [elements, setElements] = useState([]);
 
-    return Array.from({ length: 20 }).map((_, i) => {
+  useEffect(() => {
+    // We generate these on the client side so they don't cause Next.js hydration errors
+    const generatedElements = Array.from({ length: 20 }).map((_, i) => {
       const types = ['receipt', 'arrow', 'minus'];
       return {
         id: i,
-        x: Math.random() * 100,
-        delay: Math.random() * 5,
-        duration: 6 + Math.random() * 6,
-        size: 16 + Math.random() * 24,
-        type: types[Math.floor(Math.random() * types.length)],
+        x: Math.random() * 100, // Random horizontal position (0-100vw)
+        delay: Math.random() * 5, // Random start time
+        duration: 6 + Math.random() * 6, // Random fall speed
+        size: 16 + Math.random() * 24, // Random size
+        type: types[Math.floor(Math.random() * types.length)], // Random icon
         rotation: Math.random() * 360,
-        spin: Math.random() > 0.5 ? 180 : -180,
       };
     });
-  }, [isClient]);
+    setElements(generatedElements);
+  }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -38,8 +37,8 @@ export default function ExpenseRain() {
           }}
           animate={{
             y: '100vh',
-            opacity: [0, 1, 0.8, 0],
-            rotate: el.rotation + el.spin
+            opacity: [0, 1, 0.8, 0], // Fades in, then fades out at the bottom
+            rotate: el.rotation + (Math.random() > 0.5 ? 180 : -180) // Spins slowly
           }}
           transition={{
             duration: el.duration,

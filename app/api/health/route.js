@@ -7,5 +7,7 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     server: 'StudentOS Next.js API',
+    time: new Date().toISOString(),
   });
 }
+

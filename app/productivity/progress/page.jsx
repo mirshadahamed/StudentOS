@@ -158,7 +158,7 @@ const Timeline = ({ tasks }) => {
     <div className="relative">
       <div className="absolute left-4 top-0 bottom-0 w-[1px] bg-white/8"/>
       <div className="space-y-3">
-        {pending.map((t)=>{
+        {pending.map((t,i)=>{
           const days  = t.daysLeft ?? dl(t.deadline);
           const color = barCol(days);
           return (
@@ -198,27 +198,8 @@ export default function ProgressPage() {
   const [loading, setLoading] = useState(true);
   const [view,    setView]    = useState('grid');
 
-  const load = async () => {
-    setLoading(true);
-    const t = await tasksAPI.getAll();
-    setTasks(t??[]);
-    setLoading(false);
-  };
-
-  useEffect(()=>{
-    let cancelled = false;
-    const loadTasks = async () => {
-      setLoading(true);
-      const t = await tasksAPI.getAll();
-      if (!cancelled) {
-        setTasks(t ?? []);
-        setLoading(false);
-      }
-    };
-
-    void loadTasks();
-    return () => { cancelled = true; };
-  }, []);
+  const load = async () => { setLoading(true); const t = await tasksAPI.getAll(); setTasks(t??[]); setLoading(false); };
+  useEffect(()=>{ load(); }, []);
 
   const pending  = tasks.filter(t=>!t.isCompleted);
   const done     = tasks.filter(t=>t.isCompleted);

@@ -1,79 +1,97 @@
 import { NextResponse } from 'next/server';
-
-import { connectToDatabase } from '@/lib/server/db';
-import { getUserContext, resolveUserId } from '@/lib/server/request-user';
-import { Task } from '@/lib/server/task-model';
-import { enrichTask } from '@/lib/server/task-utils';
+import { connectMongoose, isMongoConfigured } from '@/lib/server/mongoose';
+import { resolveUserId } from '@/lib/server/defaultUser';
+import { Task } from '@/lib/server/models/task';
+import { createTask, listTasks } from '@/lib/server/taskStore';
+import { enrichTask } from '@/lib/server/taskUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function cleanSubtasks(subtasks) {
-  if (!Array.isArray(subtasks)) {
-    return [];
-  }
-
-  return subtasks
-    .filter((subtask) => subtask && typeof subtask.title === 'string' && subtask.title.trim())
-    .map((subtask) => ({
-      title: subtask.title.trim(),
-      done: Boolean(subtask.done),
-    }));
-}
-
 export async function GET(request) {
   try {
-    await connectToDatabase();
+    const { searchParams } = request.nextUrl;
+    const filter = {};
 
-    const { searchParams } = new URL(request.url);
-    const filter = { userId: resolveUserId(request) };
+    const completed = searchParams.get('completed');
+    const completedBool = completed !== null ? completed === 'true' : undefined;
+    if (completedBool !== undefined) filter.isCompleted = completedBool;
 
-    if (searchParams.get('completed') !== null) {
-      filter.isCompleted = searchParams.get('completed') === 'true';
-    }
-    if (searchParams.get('priority')) {
-      filter.priority = searchParams.get('priority');
-    }
-    if (searchParams.get('category')) {
-      filter.category = searchParams.get('category');
+    const priority = searchParams.get('priority');
+    if (priority) filter.priority = priority;
+
+    const category = searchParams.get('category');
+    if (category) filter.category = category;
+
+    const requestedUserId = (searchParams.get('userId') || '').trim();
+    const userId = await resolveUserId(requestedUserId);
+    if (userId) filter.userId = userId;
+
+    if (!isMongoConfigured()) {
+      const tasks = await listTasks({ completed: completedBool, priority, category, userId });
+      return NextResponse.json(tasks.map(enrichTask));
     }
 
-    const tasks = await Task.find(filter).sort({ aiScore: -1, deadline: 1, createdAt: -1 });
+    await connectMongoose();
+    const tasks = await Task.find(filter).sort({ aiScore: -1, deadline: 1, createdAt: -1 }).lean();
     return NextResponse.json(tasks.map(enrichTask));
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (err) {
+    console.error('[tasks] GET error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
-    await connectToDatabase();
-    const body = await request.json();
-    const { title, course, category, priority, deadline, progress, subtasks } = body;
-    const { userId, userEmail } = await getUserContext(request, body);
+    const body = await request.json().catch(() => null);
+    const { title, course, category, priority, deadline, progress, userEmail, userId, subtasks } = body ?? {};
+    const effectiveUserId = await resolveUserId(userId);
 
     if (!title || !String(title).trim()) {
       return NextResponse.json({ error: 'Task title is required' }, { status: 400 });
     }
 
-    const cleanSteps = cleanSubtasks(subtasks);
+    if (!isMongoConfigured()) {
+      const created = await createTask({
+        title,
+        course,
+        category,
+        priority,
+        deadline,
+        progress,
+        userEmail,
+        userId: effectiveUserId,
+        subtasks,
+      });
+      if (!created) return NextResponse.json({ error: 'Task title is required' }, { status: 400 });
+      return NextResponse.json(enrichTask(created), { status: 201 });
+    }
+
+    await connectMongoose();
+
+    let cleanSubtasks = [];
+    if (Array.isArray(subtasks)) {
+      cleanSubtasks = subtasks
+        .filter((s) => s && typeof s.title === 'string' && s.title.trim())
+        .map((s) => ({ title: s.title.trim(), done: Boolean(s.done) || false }));
+    }
+
     const task = new Task({
       title: String(title).trim(),
       course: String(course || '').trim(),
-      category: ['Assignment', 'Exam', 'Project', 'Lab Report', 'Presentation'].includes(category)
-        ? category
-        : 'Assignment',
+      category: ['Assignment', 'Exam', 'Project', 'Lab Report', 'Presentation'].includes(category) ? category : 'Assignment',
       priority: ['High', 'Medium', 'Low'].includes(priority) ? priority : 'Medium',
       deadline: deadline ? new Date(deadline) : null,
-      progress: cleanSteps.length === 0 ? Math.max(0, Math.min(100, Number(progress) || 0)) : 0,
+      progress: cleanSubtasks.length === 0 ? Math.max(0, Math.min(100, Number(progress) || 0)) : 0,
       userEmail: String(userEmail || '').trim(),
-      userId: String(userId || 'guest').trim(),
-      subtasks: cleanSteps,
+      userId: String(effectiveUserId || 'guest').trim(),
+      subtasks: cleanSubtasks,
     });
 
-    const savedTask = await task.save();
-    return NextResponse.json(enrichTask(savedTask), { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const saved = await task.save();
+    return NextResponse.json(enrichTask(saved), { status: 201 });
+  } catch (err) {
+    console.error('[tasks] POST error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }

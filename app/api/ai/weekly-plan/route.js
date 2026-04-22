@@ -1,26 +1,40 @@
 import { NextResponse } from 'next/server';
-
-import { generateWeeklyPlan } from '@/lib/server/ai-service';
-import { connectToDatabase } from '@/lib/server/db';
-import { resolveUserId } from '@/lib/server/request-user';
-import { Task } from '@/lib/server/task-model';
+import { connectMongoose, isMongoConfigured } from '@/lib/server/mongoose';
+import { resolveUserId } from '@/lib/server/defaultUser';
+import { Task } from '@/lib/server/models/task';
+import { generateWeeklyPlan } from '@/lib/server/services/aiService';
+import { topTasks } from '@/lib/server/taskStore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    await connectToDatabase();
-    const tasks = await Task.find({ userId: resolveUserId(request) }).sort({ aiScore: -1 }).limit(20).lean();
-    let plan = await generateWeeklyPlan({ tasks, focusHoursPerDay: 4 });
+    const { searchParams } = request.nextUrl;
+    const requestedUserId = (searchParams.get('userId') || '').trim();
+    const userId = await resolveUserId(requestedUserId);
+
+    let tasks;
+    if (!isMongoConfigured()) {
+      tasks = await topTasks({ limit: 20, userId });
+    } else {
+      await connectMongoose();
+      const filter = {};
+      if (userId) filter.userId = userId;
+      tasks = await Task.find(filter).sort({ aiScore: -1 }).limit(20).lean();
+    }
+    let plan = null;
+
+    if (process.env.ANTHROPIC_API_KEY && tasks.length > 0) {
+      plan = await generateWeeklyPlan({ tasks, focusHoursPerDay: 4 });
+    }
 
     if (!plan || !Array.isArray(plan)) {
       const today = new Date();
-      plan = Array.from({ length: 7 }, (_, index) => {
+      plan = Array.from({ length: 7 }, (_, idx) => {
         const day = new Date(today);
-        day.setDate(day.getDate() + index);
-        const task = tasks[index] || tasks[0];
-
+        day.setDate(day.getDate() + idx);
+        const task = tasks[idx] || tasks[0];
         return {
           day: day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }),
           focus: task ? `Work on: ${task.title} (${task.progress || 0}% complete)` : 'Rest and review progress',
@@ -31,7 +45,8 @@ export async function GET(request) {
     }
 
     return NextResponse.json(plan);
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (err) {
+    console.error('[ai/weekly-plan] error:', err);
+    return NextResponse.json({ error: err.message ?? 'Unknown error' }, { status: 500 });
   }
 }
