@@ -317,7 +317,7 @@ export default function HeroWithCards() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="mb-8 max-w-2xl px-2 text-base text-white/90 sm:px-4 sm:text-lg md:text-xl"
+              className="mb-8 max-w-2xl px-2 text-base text-center text-white/90 sm:px-4 sm:text-lg md:text-xl"
             >
               Track your mood, manage finances, and plan your future — all in one intelligent platform designed for students.
             </motion.p>

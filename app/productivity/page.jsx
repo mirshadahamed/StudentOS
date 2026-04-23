@@ -9,7 +9,7 @@ import {
   Plus, ArrowUpRight, AlertCircle, Sparkles,
   Loader2, Check, X, ListChecks
 } from 'lucide-react';
-import { tasksAPI, aiAPI } from '@/lib/api';
+import { tasksAPI, aiAPI, meAPI, userSession } from '@/lib/api';
 
 // ─── AMBIENT BACKGROUND ───────────────────────────────────────────────────────
 const AmbientBg = () => (
@@ -244,6 +244,22 @@ export default function ProductivityHub() {
   const [stats, setStats] = useState({ total:0, weekTasks:0, completed:0, prodScore:0, critical:0, avgAiScore:0 });
   const [aiInsight, setAiInsight] = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);
+  const [userName, setUserName] = useState('Student');
+
+  const loadUser = async () => {
+    const me = await meAPI.get();
+    const user = me?.user;
+    const resolvedUserId = String(me?.userId ?? '').trim();
+    const resolvedName = String(user?.name ?? user?.username ?? user?.userName ?? '').trim();
+
+    if (resolvedUserId && resolvedUserId !== 'guest') {
+      userSession.setUserId(resolvedUserId);
+    }
+
+    if (resolvedName) {
+      setUserName(resolvedName);
+    }
+  };
 
   const refresh = async () => {
     const [a, s, t] = await Promise.all([
@@ -256,7 +272,12 @@ export default function ProductivityHub() {
     setRecentTasks((t ?? []).slice(0, 4));
   };
 
-  useEffect(() => { if (!isBooting) refresh(); }, [isBooting]);
+  useEffect(() => {
+    if (!isBooting) {
+      loadUser();
+      refresh();
+    }
+  }, [isBooting]);
 
   const handleAdded = (task) => {
     setRecentTasks(prev => [task, ...prev].slice(0, 4));
@@ -291,7 +312,7 @@ export default function ProductivityHub() {
           className="flex items-start justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2 text-orange-500/70">Smart Planning Hub</p>
-            <h1 className="text-5xl font-black tracking-tighter text-white">Welcome, Sajana.</h1>
+            <h1 className="text-5xl font-black tracking-tighter text-white">{`Welcome, ${userName}.`}</h1>
             <p className="text-sm mt-1.5 text-neutral-500">Your academic command centre</p>
           </div>
           {/* Back to landing page */}
