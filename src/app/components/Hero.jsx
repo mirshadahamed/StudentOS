@@ -423,7 +423,7 @@ export default function HeroWithCards() {
                 icon: Calendar, 
                 title: "Smart Planning", 
                 description: "Organize your academic life with intelligent scheduling and goal setting.",
-                href: "/planning",
+                href: "/productivity",
                 gradient: "from-[#2DD4BF] to-[#A78BFA]",
                 bgGradient: "from-[#2DD4BF]/5 to-[#A78BFA]/5",
                 features: ["Task management", "Goal tracking", "Study planner"],

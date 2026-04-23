@@ -26,9 +26,11 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/finance/page.jsx", "app/api/Finance/route.js", "app/layout.jsx", "app/page.jsx"  ],
+, "app/finance/page.jsx", "app/api/Finance/route.js", "app/layout.jsx", "app/page.jsx", "src/app/layout.jsx"  ],
   "exclude": ["node_modules"]
 }
