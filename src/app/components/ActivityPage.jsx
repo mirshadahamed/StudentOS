@@ -906,14 +906,28 @@ export default function ActivitiesPage() {
                         onClick={() => startActivity(activity)}
                         className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer border border-white/[0.06] hover:border-emerald-500/30 transition-all group"
                       >
+                        {/* ── Card image area ── */}
                         <div className="relative h-40 overflow-hidden">
-                          <div className={`absolute inset-0 bg-gradient-to-br ${activity.color} opacity-40 group-hover:opacity-60 transition-opacity`} />
+                          {/* Actual photo */}
+                          <img
+                            src={activity.thumbnail}
+                            alt={activity.title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          {/* Gradient tint overlay — keeps the existing colour identity */}
+                          <div
+                            className={`absolute inset-0 bg-gradient-to-br ${activity.color} opacity-40 group-hover:opacity-55 transition-opacity`}
+                          />
+                          {/* Dark scrim at bottom so the badge stays readable */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
                           <div className="absolute bottom-3 left-3">
                             <span className="px-2 py-1 bg-black/50 backdrop-blur text-white/80 text-xs rounded-full">
                               {activity.category}
                             </span>
                           </div>
                         </div>
+
                         <div className="p-4">
                           <h3 className="font-semibold text-white/80 mb-1">{activity.title}</h3>
                           <p className="text-xs text-white/40 line-clamp-2 mb-3">{activity.description}</p>
