@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import StarfieldBackground from "./StarfieldBackground";
 import {
   Heart,
   Clock,
@@ -312,6 +313,7 @@ const AmbientBackground = ({ moodId }) => {
           backgroundSize: "60px 60px",
         }}
       />
+      <StarfieldBackground />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#060d17_100%)]" />
     </div>
   );

@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import StarfieldBackground from "./StarfieldBackground";
 
 // ─── Mood Definitions with soft tones ──────────────────────────────────────
 const moodDefinitions = {
@@ -185,6 +186,7 @@ const AmbientBackground = ({ mood }) => {
           backgroundSize: "60px 60px",
         }}
       />
+      <StarfieldBackground />
       {/* vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#060d17_100%)]" />
     </div>
