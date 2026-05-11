@@ -9,8 +9,8 @@ import {
   TrendingUp, BarChart2, Sprout, AlertTriangle, Droplets
 } from 'lucide-react';
 
-import MoneyRain from '../../../components/MoneyRain';
-import WealthCity from '../../../components/WealthCity';
+import MoneyRain from '@/components/MoneyRain';
+import WealthCity from '@/components/WealthCity';
 import { withUserQuery } from './apiClient';
 
 // --- 💎 INNOVATIVE CATEGORY CARD (TOP GRID) ---

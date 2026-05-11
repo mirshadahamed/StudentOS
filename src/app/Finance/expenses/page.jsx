@@ -8,7 +8,7 @@ import {
   CheckCircle2, Clock, X, Bell, AlertTriangle, Search,
   Edit2, Trash2, Zap, AlertOctagon, MessageCircle
 } from 'lucide-react';
-import ExpenseRain from '../../../../components/ExpenseRain';
+import ExpenseRain from '@/components/ExpenseRain';
 import { getFinanceUserId, withUserBody, withUserQuery } from '../apiClient';
 
 export default function ExpensesPage() {

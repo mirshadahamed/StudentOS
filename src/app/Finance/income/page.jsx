@@ -8,7 +8,7 @@ import {
   ArrowUpRight, X, Search, Edit2, Trash2, 
   TrendingUp, Award, Zap
 } from 'lucide-react';
-import MoneyRain from '../../../../components/MoneyRain'; 
+import MoneyRain from '@/components/MoneyRain';
 import { withUserBody, withUserQuery } from '../apiClient';
 
 export default function IncomePage() {
