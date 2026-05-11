@@ -21,7 +21,7 @@ import {
 
 import MoneyRain from '@/components/MoneyRain';
 import WealthCity from '@/components/WealthCity';
-import { withUserQuery } from '@/src/app/finance/apiClient';
+import { withUserQuery } from './apiClient';
 
 const ModuleCard = ({ title, description, icon: Icon, link, color, delay }) => (
   <Link href={link} className="relative z-10 block h-full w-full group">

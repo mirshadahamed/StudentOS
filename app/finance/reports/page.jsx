@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, PieChart, TrendingUp, TrendingDown, Download, Activity } from 'lucide-react';
 
-import { withUserQuery } from '@/src/app/finance/apiClient';
+import { withUserQuery } from '../apiClient';
 
 const SimpleComparisonChart = ({ data }) => {
   const maxValue = Math.max(...data.map((item) => item.amount), 1);

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 import MoneyRain from '@/components/MoneyRain';
-import { withUserBody, withUserQuery } from '@/src/app/finance/apiClient';
+import { withUserBody, withUserQuery } from '../apiClient';
 
 export default function IncomePage() {
   const [transactions, setTransactions] = useState([]);
